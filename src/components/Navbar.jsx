@@ -24,7 +24,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Donation Requests", href: "/donation-requests" },
-    { name: "Search Donors", href: "/search" },
+    { name: "Search Donors", href: "/search-donors" },
     ...(session ? [{ name: "Funding", href: "/funding" }] : []),
   ];
 

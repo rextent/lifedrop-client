@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
 import {
-  FaCalendarDays,
-  FaClock,
   FaDroplet,
-  FaEye,
-  FaHospital,
+  FaEnvelope,
   FaLocationDot,
   FaMagnifyingGlass,
   FaRotateRight,
@@ -23,14 +18,10 @@ const defaultFilters = {
   upazila: "",
 };
 
-export default function PublicDonationRequestsPage() {
-  const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
-  const user = session?.user;
-
+export default function SearchDonorsPage() {
   const [urlReady, setUrlReady] = useState(false);
 
-  const [requests, setRequests] = useState([]);
+  const [donors, setDonors] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [districts, setDistricts] = useState([]);
@@ -47,7 +38,7 @@ export default function PublicDonationRequestsPage() {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 6,
+    limit: 8,
     total: 0,
     totalPages: 0,
   });
@@ -73,10 +64,10 @@ export default function PublicDonationRequestsPage() {
 
     const queryString = params.toString();
     const nextUrl = queryString
-      ? `/donation-requests?${queryString}`
-      : "/donation-requests";
+      ? `/search-donors?${queryString}`
+      : "/search-donors";
 
-    router.replace(nextUrl, { scroll: false });
+    window.history.replaceState(null, "", nextUrl);
   };
 
   const syncStateFromUrl = (districtList, upazilaList) => {
@@ -150,7 +141,7 @@ export default function PublicDonationRequestsPage() {
 
         syncStateFromUrl(districtList, upazilaList);
       } catch (error) {
-        console.error("LOCATION_JSON_LOAD_ERROR:", error);
+        console.error("DONOR_LOCATION_JSON_LOAD_ERROR:", error);
         setDistricts([]);
         setUpazilas([]);
         setFilteredUpazilas([]);
@@ -164,23 +155,22 @@ export default function PublicDonationRequestsPage() {
   useEffect(() => {
     if (!urlReady) return;
 
-    const loadPendingRequests = async () => {
+    const loadDonors = async () => {
       try {
         setLoading(true);
 
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
         const queryParams = new URLSearchParams({
-          status: "pending",
           page: String(page),
-          limit: "6",
+          limit: "8",
           bloodGroup: appliedFilters.bloodGroup,
           district: appliedFilters.district,
           upazila: appliedFilters.upazila,
         });
 
         const response = await fetch(
-          `${baseUrl}/api/donationRequests?${queryParams.toString()}`,
+          `${baseUrl}/api/donors?${queryParams.toString()}`,
           {
             method: "GET",
             cache: "no-store",
@@ -190,26 +180,24 @@ export default function PublicDonationRequestsPage() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(
-            data?.message || "Failed to load donation requests."
-          );
+          throw new Error(data?.message || "Failed to load donors.");
         }
 
-        setRequests(data?.requests || []);
+        setDonors(data?.donors || []);
         setPagination(
           data?.pagination || {
             page: 1,
-            limit: 6,
+            limit: 8,
             total: 0,
             totalPages: 0,
           }
         );
       } catch (error) {
-        console.error("PUBLIC_DONATION_REQUESTS_ERROR:", error);
-        setRequests([]);
+        console.error("PUBLIC_DONORS_ERROR:", error);
+        setDonors([]);
         setPagination({
           page: 1,
-          limit: 6,
+          limit: 8,
           total: 0,
           totalPages: 0,
         });
@@ -218,7 +206,7 @@ export default function PublicDonationRequestsPage() {
       }
     };
 
-    loadPendingRequests();
+    loadDonors();
   }, [
     urlReady,
     page,
@@ -273,26 +261,13 @@ export default function PublicDonationRequestsPage() {
     updateUrl(appliedFilters, pageNumber);
   };
 
-  const handleViewRequest = (requestId) => {
-    if (isPending) return;
-
-    const detailsPath = `/dashboard/donation-requests/${requestId}`;
-
-    if (!user?.email) {
-      router.push(`/auth/login?redirect=${encodeURIComponent(detailsPath)}`);
-      return;
-    }
-
-    router.push(detailsPath);
-  };
-
   const currentPage = pagination.page || page;
   const totalPages = pagination.totalPages || 0;
 
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="mx-auto w-full max-w-[1450px] px-4 py-10 sm:px-6 lg:px-8">
-        {/* Page Header */}
+        {/* Header */}
         <div className="mb-8 overflow-hidden rounded-3xl border border-red-100 bg-white shadow-sm">
           <div className="relative bg-gradient-to-br from-red-600 to-rose-700 p-6 text-white sm:p-10">
             <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
@@ -301,22 +276,21 @@ export default function PublicDonationRequestsPage() {
             <div className="relative z-10 max-w-3xl">
               <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">
                 <FaDroplet />
-                Blood Donation Requests
+                Search Donors
               </p>
 
               <h1 className="text-3xl font-black tracking-tight sm:text-5xl">
-                Pending Blood Donation Requests
+                Find Blood Donors
               </h1>
 
               <p className="mt-4 text-sm leading-6 text-red-50 sm:text-base">
-                Browse all pending blood donation requests and view details to
-                help someone in need.
+                Search registered donors by blood group and location.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Filter Box */}
+        {/* Filter */}
         <form
           onSubmit={handleApplyFilter}
           className="mb-6 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm"
@@ -324,11 +298,11 @@ export default function PublicDonationRequestsPage() {
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-wide text-red-600">
-                Filter Requests
+                Donor Filter
               </p>
 
               <h2 className="mt-1 text-2xl font-black text-slate-950">
-                Find Matching Blood Requests
+                Search Matching Donors
               </h2>
             </div>
 
@@ -405,7 +379,7 @@ export default function PublicDonationRequestsPage() {
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700"
               >
                 <FaMagnifyingGlass />
-                Filter
+                Search
               </button>
 
               <button
@@ -420,60 +394,73 @@ export default function PublicDonationRequestsPage() {
           </div>
         </form>
 
+        {/* Loading */}
         {loading && (
           <div className="rounded-3xl border border-slate-100 bg-white p-8 text-center shadow-sm">
             <p className="text-sm font-bold text-slate-500">
-              Loading pending donation requests...
+              Loading donors...
             </p>
           </div>
         )}
 
-        {!loading && requests.length === 0 && (
+        {/* Empty */}
+        {!loading && donors.length === 0 && (
           <div className="rounded-3xl border border-slate-100 bg-white p-10 text-center shadow-sm">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-red-50 text-2xl text-red-600">
-              <FaDroplet />
+              <FaUser />
             </div>
 
             <h2 className="mt-5 text-2xl font-black text-slate-950">
-              No Pending Requests Found
+              No Donors Found
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
-              No pending donation request matched your filter.
+              No donor matched your selected filter.
             </p>
           </div>
         )}
 
-        {!loading && requests.length > 0 && (
+        {/* Donor Grid */}
+        {!loading && donors.length > 0 && (
           <>
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {requests.map((request) => {
-                const requestId = request._id || request.id;
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {donors.map((donor) => {
+                const donorId = donor._id || donor.id;
+                const avatar =
+                  donor.image || donor.avatar || donor.avatarUrl || "";
 
                 return (
                   <div
-                    key={requestId}
+                    key={donorId}
                     className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-xl text-red-600">
-                          <FaUser />
-                        </div>
+                        {avatar ? (
+                          <img
+                            src={avatar}
+                            alt={donor.name || "Donor"}
+                            className="h-14 w-14 rounded-2xl object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-xl text-red-600">
+                            <FaUser />
+                          </div>
+                        )}
 
                         <div>
                           <p className="text-xs font-black uppercase tracking-wide text-slate-400">
-                            Recipient
+                            Donor
                           </p>
 
-                          <h2 className="text-lg font-black text-slate-950">
-                            {request.recipientName || "N/A"}
+                          <h2 className="line-clamp-1 text-lg font-black text-slate-950">
+                            {donor.name || "N/A"}
                           </h2>
                         </div>
                       </div>
 
-                      <span className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-black text-white">
-                        {request.bloodGroup || "N/A"}
+                      <span className="rounded-2xl bg-red-600 px-3 py-1.5 text-sm font-black text-white">
+                        {donor.bloodGroup || "N/A"}
                       </span>
                     </div>
 
@@ -487,71 +474,48 @@ export default function PublicDonationRequestsPage() {
                           </p>
 
                           <p className="text-sm font-bold text-slate-800">
-                            {request.recipientUpazila || "N/A"},{" "}
-                            {request.recipientDistrict || "N/A"}
+                            {donor.upazila || "N/A"},{" "}
+                            {donor.district || "N/A"}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3">
-                        <FaHospital className="mt-1 text-red-500" />
+                        <FaEnvelope className="mt-1 text-red-500" />
 
                         <div>
                           <p className="text-xs font-bold uppercase text-slate-400">
-                            Hospital
+                            Email
                           </p>
 
-                          <p className="text-sm font-bold text-slate-800">
-                            {request.hospitalName || "N/A"}
+                          <p className="break-all text-sm font-bold text-slate-800">
+                            {donor.email || "N/A"}
                           </p>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3">
-                          <FaCalendarDays className="mt-1 text-red-500" />
+                      <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3">
+                        <p className="text-xs font-black uppercase text-slate-400">
+                          Status
+                        </p>
 
-                          <div>
-                            <p className="text-xs font-bold uppercase text-slate-400">
-                              Date
-                            </p>
-
-                            <p className="text-sm font-bold text-slate-800">
-                              {request.donationDate || "N/A"}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3">
-                          <FaClock className="mt-1 text-red-500" />
-
-                          <div>
-                            <p className="text-xs font-bold uppercase text-slate-400">
-                              Time
-                            </p>
-
-                            <p className="text-sm font-bold text-slate-800">
-                              {request.donationTime || "N/A"}
-                            </p>
-                          </div>
-                        </div>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-black capitalize ${
+                            donor.status === "blocked"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-emerald-100 text-emerald-700"
+                          }`}
+                        >
+                          {donor.status || "active"}
+                        </span>
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleViewRequest(requestId)}
-                      disabled={isPending}
-                      className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <FaEye />
-                      View Details
-                    </button>
                   </div>
                 );
               })}
             </div>
 
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:flex-row">
                 <p className="text-sm font-bold text-slate-500">
@@ -561,7 +525,9 @@ export default function PublicDonationRequestsPage() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
+                    onClick={() =>
+                      handlePageChange(Math.max(currentPage - 1, 1))
+                    }
                     disabled={currentPage <= 1 || loading}
                     className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
                   >
