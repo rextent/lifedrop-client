@@ -44,7 +44,7 @@ export default function Hero() {
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Link 
-                href="/register" 
+                href="/auth/signup" 
                 className="group flex items-center justify-center gap-2 rounded-xl bg-red-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-red-200 transition-all duration-300 hover:bg-red-700 hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 <FaDroplet className="group-hover:animate-bounce" />
@@ -52,7 +52,7 @@ export default function Hero() {
               </Link>
               
               <Link 
-                href="/search" 
+                href="/search-donors" 
                 className="group flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-red-600 border-2 border-red-100 shadow-sm transition-all duration-300 hover:border-red-600 hover:bg-red-50 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 <FaMagnifyingGlass className="text-red-500 transition-colors group-hover:text-red-600" />

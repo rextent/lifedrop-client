@@ -40,7 +40,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/search" className="text-gray-600 hover:text-red-600 transition-colors focus:outline-none">
+                <Link href="/search-donors" className="text-gray-600 hover:text-red-600 transition-colors focus:outline-none">
                   Search Donors
                 </Link>
               </li>
