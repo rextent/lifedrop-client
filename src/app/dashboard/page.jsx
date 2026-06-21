@@ -11,9 +11,7 @@ import {
   FaDroplet,
   FaEye,
   FaPenToSquare,
-  FaTrash,
   FaUser,
-  FaCheck,
   FaXmark,
 } from "react-icons/fa6";
 
@@ -33,16 +31,27 @@ export default function DashboardHomePage() {
   const [actionLoadingId, setActionLoadingId] = useState("");
 
   useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.email) {
+      setRequests([]);
+      setLoading(false);
+      return;
+    }
 
     const loadRecentRequests = async () => {
       try {
         setLoading(true);
 
-        const response = await fetch("/api/donation-requests/my?limit=3", {
-          method: "GET",
-          cache: "no-store",
-        });
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+        const response = await fetch(
+          `${baseUrl}/api/donationRequests/my?email=${encodeURIComponent(
+            user.email
+          )}&status=all&page=1&limit=3`,
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
 
         const data = await response.json();
 
@@ -62,43 +71,9 @@ export default function DashboardHomePage() {
     loadRecentRequests();
   }, [user?.email]);
 
-  const handleStatusUpdate = async (requestId, status) => {
-    try {
-      setActionLoadingId(requestId);
-
-      const response = await fetch(`/api/donation-requests/${requestId}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.message || "Status update failed.");
-      }
-
-      setRequests((prev) =>
-        prev.map((request) =>
-          request._id === requestId || request.id === requestId
-            ? { ...request, donationStatus: status, status }
-            : request
-        )
-      );
-
-      toast.success(`Donation request marked as ${status}.`);
-    } catch (error) {
-      toast.error(error.message || "Something went wrong.");
-    } finally {
-      setActionLoadingId("");
-    }
-  };
-
-  const handleDelete = async (requestId) => {
+  const handleCancelRequest = async (requestId) => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this donation request?"
+      "Are you sure you want to cancel this donation request?"
     );
 
     if (!confirmed) return;
@@ -106,23 +81,38 @@ export default function DashboardHomePage() {
     try {
       setActionLoadingId(requestId);
 
-      const response = await fetch(`/api/donation-requests/${requestId}`, {
-        method: "DELETE",
-      });
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+      const response = await fetch(
+        `${baseUrl}/api/donationRequests/${requestId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "canceled" }),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.message || "Delete failed.");
+        throw new Error(data?.message || "Cancel request failed.");
       }
 
       setRequests((prev) =>
-        prev.filter(
-          (request) => request._id !== requestId && request.id !== requestId
+        prev.map((request) =>
+          request._id === requestId || request.id === requestId
+            ? {
+              ...request,
+              donationStatus: "canceled",
+              status: "canceled",
+            }
+            : request
         )
       );
 
-      toast.success("Donation request deleted successfully.");
+      toast.success("Donation request canceled successfully.");
     } catch (error) {
       toast.error(error.message || "Something went wrong.");
     } finally {
@@ -134,7 +124,9 @@ export default function DashboardHomePage() {
     return (
       <section className="space-y-6">
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-          <p className="text-sm font-bold text-slate-500">Loading session...</p>
+          <p className="text-sm font-bold text-slate-500">
+            Loading session...
+          </p>
         </div>
       </section>
     );
@@ -166,7 +158,7 @@ export default function DashboardHomePage() {
         </div>
       </div>
 
-      {/* Recent Donation Requests */}
+      {/* Recent Donation Requests - hidden if no request */}
       {!loading && requests.length > 0 && (
         <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -174,9 +166,11 @@ export default function DashboardHomePage() {
               <p className="text-sm font-bold uppercase tracking-wide text-red-600">
                 Recent Requests
               </p>
+
               <h2 className="mt-1 text-2xl font-black text-slate-950">
                 My Recent Donation Requests
               </h2>
+
               <p className="mt-1 text-sm text-slate-500">
                 Showing maximum 3 recent donation requests created by you.
               </p>
@@ -192,7 +186,7 @@ export default function DashboardHomePage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px] border-collapse text-left">
+            <table className="w-full min-w-[1000px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500">
                   <th className="px-5 py-4">Recipient</th>
@@ -212,6 +206,9 @@ export default function DashboardHomePage() {
                     request.donationStatus || request.status || "pending";
 
                   const isInProgress = status === "inprogress";
+                  const canCancel =
+                    status === "pending" || status === "inprogress";
+                  const canEdit = status === "pending";
                   const isActionLoading = actionLoadingId === requestId;
 
                   return (
@@ -224,6 +221,7 @@ export default function DashboardHomePage() {
                           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-600">
                             <FaUser />
                           </div>
+
                           <div>
                             <p className="font-black text-slate-950">
                               {request.recipientName || "N/A"}
@@ -237,10 +235,10 @@ export default function DashboardHomePage() {
 
                       <td className="px-5 py-4">
                         <p className="font-bold text-slate-800">
-                          {request.recipientDistrict || request.district || "N/A"}
+                          {request.recipientDistrict || "N/A"}
                         </p>
                         <p className="text-sm text-slate-500">
-                          {request.recipientUpazila || request.upazila || "N/A"}
+                          {request.recipientUpazila || "N/A"}
                         </p>
                       </td>
 
@@ -250,6 +248,7 @@ export default function DashboardHomePage() {
                             <FaCalendarDays className="text-red-500" />
                             {request.donationDate || "N/A"}
                           </p>
+
                           <p className="flex items-center gap-2 text-sm text-slate-500">
                             <FaClock className="text-red-400" />
                             {request.donationTime || "N/A"}
@@ -265,10 +264,9 @@ export default function DashboardHomePage() {
 
                       <td className="px-5 py-4">
                         <span
-                          className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
-                            statusStyles[status] ||
+                          className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${statusStyles[status] ||
                             "border-slate-100 bg-slate-50 text-slate-600"
-                          }`}
+                            }`}
                         >
                           {status}
                         </span>
@@ -285,58 +283,14 @@ export default function DashboardHomePage() {
                             </p>
                           </div>
                         ) : (
-                          <span className="text-sm text-slate-400">Hidden</span>
+                          <span className="text-sm text-slate-400">
+                            Hidden
+                          </span>
                         )}
                       </td>
 
                       <td className="px-5 py-4">
                         <div className="flex items-center justify-end gap-2">
-                          {isInProgress && (
-                            <>
-                              <button
-                                type="button"
-                                disabled={isActionLoading}
-                                onClick={() =>
-                                  handleStatusUpdate(requestId, "done")
-                                }
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition hover:bg-emerald-600 hover:text-white disabled:opacity-60"
-                                title="Mark as done"
-                              >
-                                <FaCheck />
-                              </button>
-
-                              <button
-                                type="button"
-                                disabled={isActionLoading}
-                                onClick={() =>
-                                  handleStatusUpdate(requestId, "canceled")
-                                }
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-600 hover:text-white disabled:opacity-60"
-                                title="Cancel request"
-                              >
-                                <FaXmark />
-                              </button>
-                            </>
-                          )}
-
-                          <Link
-                            href={`/dashboard/edit-donation-request/${requestId}`}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-800 hover:text-white"
-                            title="Edit"
-                          >
-                            <FaPenToSquare />
-                          </Link>
-
-                          <button
-                            type="button"
-                            disabled={isActionLoading}
-                            onClick={() => handleDelete(requestId)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white disabled:opacity-60"
-                            title="Delete"
-                          >
-                            <FaTrash />
-                          </button>
-
                           <Link
                             href={`/donation-requests/${requestId}`}
                             className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white"
@@ -344,6 +298,28 @@ export default function DashboardHomePage() {
                           >
                             <FaEye />
                           </Link>
+
+                          {canEdit && (
+                            <Link
+                              href={`/dashboard/edit-donation-request/${requestId}`}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-800 hover:text-white"
+                              title="Edit"
+                            >
+                              <FaPenToSquare />
+                            </Link>
+                          )}
+
+                          {canCancel && (
+                            <button
+                              type="button"
+                              disabled={isActionLoading}
+                              onClick={() => handleCancelRequest(requestId)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                              title="Cancel request"
+                            >
+                              <FaXmark />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
