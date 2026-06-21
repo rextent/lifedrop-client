@@ -15,6 +15,7 @@ import {
     FaShieldHeart,
     FaUser,
 } from "react-icons/fa6";
+import { createDonationRequest } from "@/lib/actions/donationRequests";
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -223,19 +224,9 @@ export default function CreateDonationRequestPage() {
 
             console.log("CREATE_DONATION_REQUEST_PAYLOAD:", requestPayload);
 
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+            const data = await createDonationRequest(requestPayload);
 
-            const response = await fetch(`${apiBaseUrl}/api/donation-requests`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestPayload),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
+            if (!data?.success) {
                 throw new Error(data?.message || "Failed to create donation request.");
             }
 
@@ -484,8 +475,8 @@ export default function CreateDonationRequestPage() {
                                         onClick={() => updateField("bloodGroup", group)}
                                         disabled={isBlocked || submitting}
                                         className={`rounded-xl border py-2.5 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${form.bloodGroup === group
-                                                ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-100"
-                                                : "border-red-100 bg-red-50 text-red-600 hover:bg-red-100"
+                                            ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-100"
+                                            : "border-red-100 bg-red-50 text-red-600 hover:bg-red-100"
                                             }`}
                                     >
                                         {group}
