@@ -457,7 +457,7 @@ export default function MyDonationRequestsPage() {
                                                     )}
 
                                                     <Link
-                                                        href={`/donation-requests/${requestId}`}
+                                                        href={`/dashboard/donation-requests/${requestId}`}
                                                         className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white"
                                                         title="View"
                                                     >

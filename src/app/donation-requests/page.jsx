@@ -59,7 +59,7 @@ export default function PublicDonationRequestsPage() {
   const handleViewRequest = (requestId) => {
     if (isPending) return;
 
-    const detailsPath = `/donation-requests/${requestId}`;
+    const detailsPath = `/dashboard/donation-requests/${requestId}`;
 
     if (!user?.email) {
       router.push(`/auth/login?redirect=${encodeURIComponent(detailsPath)}`);
