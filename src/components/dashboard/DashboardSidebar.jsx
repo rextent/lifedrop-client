@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { getAuthHeaders, removeAccessToken } from "@/lib/jwt-token";
 import {
   FaBars,
   FaDroplet,
@@ -46,6 +47,9 @@ export default function DashboardSidebar({ children }) {
 
         const response = await fetch(`${baseUrl}/api/auth/me`, {
           method: "GET",
+          headers: {
+            ...getAuthHeaders(),
+          },
           credentials: "include",
           cache: "no-store",
         });
@@ -179,6 +183,7 @@ export default function DashboardSidebar({ children }) {
   };
 
   const handleLogout = async () => {
+    removeAccessToken();
     await authClient.signOut();
     router.push("/");
   };
