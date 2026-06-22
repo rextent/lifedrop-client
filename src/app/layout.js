@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
+import GlobalToaster from "@/components/GlobalToaster";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -25,9 +26,10 @@ export default function RootLayout({ children }) {
         className={`${poppins.className} min-h-screen bg-background text-foreground antialiased flex flex-col`}
       >
         <Navbar/>
+        <GlobalToaster />
         {children}
         <Footer/>
-        <Toaster position="top-right" reverseOrder={false} />
+        {/* <Toaster position="top-right" reverseOrder={false} /> */}
       </body>
     </html>
   );

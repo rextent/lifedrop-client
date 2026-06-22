@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
     FaArrowLeft,
     FaArrowRight,
@@ -36,8 +36,18 @@ const statusStyles = {
     canceled: "border-red-100 bg-red-50 text-red-700",
 };
 
+const emptyConfirmModal = {
+    open: false,
+    type: "",
+    requestId: "",
+    title: "",
+    message: "",
+    confirmText: "",
+};
+
 export default function MyDonationRequestsPage() {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+    const apiBaseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
     const [user, setUser] = useState(null);
     const [requests, setRequests] = useState([]);
@@ -56,6 +66,7 @@ export default function MyDonationRequestsPage() {
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [loadingRequests, setLoadingRequests] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState("");
+    const [confirmModal, setConfirmModal] = useState(emptyConfirmModal);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -140,39 +151,91 @@ export default function MyDonationRequestsPage() {
         setPage(1);
     };
 
-    const handleCancelRequest = async (requestId) => {
-        const confirmed = window.confirm(
-            "Are you sure you want to cancel this donation request?"
-        );
+    const handleCancelRequest = (requestId) => {
+        setConfirmModal({
+            open: true,
+            type: "cancel",
+            requestId,
+            title: "Cancel Donation Request?",
+            message:
+                "This request will not be deleted. Only the status will be changed to canceled.",
+            confirmText: "Yes, Cancel Request",
+        });
+    };
 
-        if (!confirmed) return;
+    const handleDeleteRequest = (requestId) => {
+        setConfirmModal({
+            open: true,
+            type: "delete",
+            requestId,
+            title: "Delete Donation Request?",
+            message:
+                "This action will permanently delete the donation request. You cannot undo this later.",
+            confirmText: "Yes, Delete Request",
+        });
+    };
+
+    const closeConfirmModal = () => {
+        if (actionLoadingId) return;
+        setConfirmModal(emptyConfirmModal);
+    };
+
+    const handleConfirmAction = async () => {
+        if (!confirmModal.requestId || !confirmModal.type || !user?.email) return;
 
         try {
-            setActionLoadingId(requestId);
+            setActionLoadingId(confirmModal.requestId);
 
-            const response = await fetch(
-                `${apiBaseUrl}/api/donationRequests/${requestId}/status`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                        ...getAuthHeaders(),
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({
-                        status: "canceled",
-                        requesterEmail: user.email,
-                    }),
+            if (confirmModal.type === "cancel") {
+                const response = await fetch(
+                    `${apiBaseUrl}/api/donationRequests/${confirmModal.requestId}/status`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...getAuthHeaders(),
+                        },
+                        credentials: "include",
+                        body: JSON.stringify({
+                            status: "canceled",
+                            requesterEmail: user.email,
+                        }),
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data?.message || "Failed to cancel donation request.");
                 }
-            );
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data?.message || "Failed to cancel donation request.");
+                toast.success("Donation request canceled successfully.");
             }
 
-            toast.success("Donation request canceled successfully.");
+            if (confirmModal.type === "delete") {
+                const response = await fetch(
+                    `${apiBaseUrl}/api/donationRequests/${confirmModal.requestId}?email=${encodeURIComponent(
+                        user.email
+                    )}`,
+                    {
+                        method: "DELETE",
+                        headers: {
+                            ...getAuthHeaders(),
+                        },
+                        credentials: "include",
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data?.message || "Failed to delete donation request.");
+                }
+
+                toast.success("Donation request deleted successfully.");
+            }
+
+            setConfirmModal(emptyConfirmModal);
             loadRequests();
         } catch (error) {
             toast.error(error.message || "Something went wrong.");
@@ -234,9 +297,6 @@ export default function MyDonationRequestsPage() {
 
     return (
         <section className="mx-auto max-w-[1280px] space-y-5">
-            <Toaster position="top-center" />
-
-            {/* Header */}
             <div className="overflow-hidden rounded-[1.75rem] border border-slate-100 bg-white shadow-sm">
                 <div className="flex flex-col gap-5 bg-gradient-to-br from-red-600 to-rose-700 px-5 py-6 text-white lg:flex-row lg:items-center lg:justify-between">
                     <div>
@@ -264,7 +324,6 @@ export default function MyDonationRequestsPage() {
                     </Link>
                 </div>
 
-                {/* Filter Tabs */}
                 <div className="border-b border-slate-100 bg-white p-5">
                     <div className="mb-3 flex items-center gap-2 text-sm font-black text-slate-700">
                         <FaFilter className="text-red-600" />
@@ -277,10 +336,11 @@ export default function MyDonationRequestsPage() {
                                 key={tab.value}
                                 type="button"
                                 onClick={() => handleFilterChange(tab.value)}
-                                className={`rounded-xl border px-4 py-2 text-sm font-black transition ${status === tab.value
-                                    ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-100"
-                                    : "border-slate-200 bg-slate-50 text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                                    }`}
+                                className={`rounded-xl border px-4 py-2 text-sm font-black transition ${
+                                    status === tab.value
+                                        ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-100"
+                                        : "border-slate-200 bg-slate-50 text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                                }`}
                             >
                                 {tab.label}
                             </button>
@@ -288,7 +348,6 @@ export default function MyDonationRequestsPage() {
                     </div>
                 </div>
 
-                {/* Table */}
                 <div className="overflow-x-auto">
                     {loadingRequests ? (
                         <div className="p-6">
@@ -393,9 +452,10 @@ export default function MyDonationRequestsPage() {
 
                                             <td className="px-5 py-4">
                                                 <span
-                                                    className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${statusStyles[currentStatus] ||
+                                                    className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
+                                                        statusStyles[currentStatus] ||
                                                         "border-slate-100 bg-slate-50 text-slate-600"
-                                                        }`}
+                                                    }`}
                                                 >
                                                     {currentStatus}
                                                 </span>
@@ -419,31 +479,17 @@ export default function MyDonationRequestsPage() {
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {isInProgress && (
-                                                        <>
-                                                            <button
-                                                                type="button"
-                                                                disabled={isActionLoading}
-                                                                onClick={() =>
-                                                                    handleStatusUpdate(requestId, "done")
-                                                                }
-                                                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition hover:bg-emerald-600 hover:text-white disabled:opacity-60"
-                                                                title="Mark as done"
-                                                            >
-                                                                <FaCheck />
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                disabled={isActionLoading}
-                                                                onClick={() =>
-                                                                    handleStatusUpdate(requestId, "canceled")
-                                                                }
-                                                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-600 hover:text-white disabled:opacity-60"
-                                                                title="Cancel request"
-                                                            >
-                                                                <FaXmark />
-                                                            </button>
-                                                        </>
+                                                        <button
+                                                            type="button"
+                                                            disabled={isActionLoading}
+                                                            onClick={() =>
+                                                                handleStatusUpdate(requestId, "done")
+                                                            }
+                                                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition hover:bg-emerald-600 hover:text-white disabled:opacity-60"
+                                                            title="Mark as done"
+                                                        >
+                                                            <FaCheck />
+                                                        </button>
                                                     )}
 
                                                     <Link
@@ -466,6 +512,16 @@ export default function MyDonationRequestsPage() {
                                                         </button>
                                                     )}
 
+                                                    <button
+                                                        type="button"
+                                                        disabled={isActionLoading}
+                                                        onClick={() => handleDeleteRequest(requestId)}
+                                                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition hover:bg-rose-600 hover:text-white disabled:opacity-60"
+                                                        title="Delete request"
+                                                    >
+                                                        <FaTrash />
+                                                    </button>
+
                                                     <Link
                                                         href={`/dashboard/donation-requests/${requestId}`}
                                                         className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white"
@@ -483,7 +539,6 @@ export default function MyDonationRequestsPage() {
                     )}
                 </div>
 
-                {/* Pagination */}
                 {requests.length > 0 && (
                     <div className="flex flex-col gap-3 border-t border-slate-100 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                         <p className="text-sm font-medium text-slate-500">
@@ -530,6 +585,50 @@ export default function MyDonationRequestsPage() {
                     </div>
                 )}
             </div>
+
+            {confirmModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+                    <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl">
+                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-2xl text-red-600">
+                            {confirmModal.type === "delete" ? <FaTrash /> : <FaXmark />}
+                        </div>
+
+                        <div className="mt-5 text-center">
+                            <h2 className="text-2xl font-black text-slate-950">
+                                {confirmModal.title}
+                            </h2>
+
+                            <p className="mt-3 text-sm leading-6 text-slate-500">
+                                {confirmModal.message}
+                            </p>
+                        </div>
+
+                        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row">
+                            <button
+                                type="button"
+                                onClick={closeConfirmModal}
+                                disabled={!!actionLoadingId}
+                                className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                No, Keep It
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleConfirmAction}
+                                disabled={!!actionLoadingId}
+                                className={`inline-flex h-11 flex-1 items-center justify-center rounded-xl px-4 text-sm font-black text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                    confirmModal.type === "delete"
+                                        ? "bg-rose-600 hover:bg-rose-700"
+                                        : "bg-red-600 hover:bg-red-700"
+                                }`}
+                            >
+                                {actionLoadingId ? "Processing..." : confirmModal.confirmText}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
