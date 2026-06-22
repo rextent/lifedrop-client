@@ -19,6 +19,7 @@ import {
     FaUser,
     FaXmark,
 } from "react-icons/fa6";
+import { getAuthHeaders } from "@/lib/jwt-token";
 
 const statusTabs = [
     { label: "All", value: "all" },
@@ -98,6 +99,11 @@ export default function MyDonationRequestsPage() {
             const response = await fetch(
                 `${apiBaseUrl}/api/donationRequests/my?${queryParams.toString()}`,
                 {
+                    method: "GET",
+                    headers: {
+                        ...getAuthHeaders(),
+                    },
+                    credentials: "include",
                     cache: "no-store",
                 }
             );
@@ -150,7 +156,9 @@ export default function MyDonationRequestsPage() {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
+                        ...getAuthHeaders(),
                     },
+                    credentials: "include",
                     body: JSON.stringify({
                         status: "canceled",
                         requesterEmail: user.email,
@@ -183,7 +191,9 @@ export default function MyDonationRequestsPage() {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
+                        ...getAuthHeaders(),
                     },
+                    credentials: "include",
                     body: JSON.stringify({
                         status: nextStatus,
                         requesterEmail: user.email,
