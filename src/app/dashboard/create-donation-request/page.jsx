@@ -15,7 +15,7 @@ import {
     FaShieldHeart,
     FaUser,
 } from "react-icons/fa6";
-import { createDonationRequest } from "@/lib/actions/donationRequests";
+import { getAuthHeaders } from "@/lib/jwt-token";
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -40,6 +40,7 @@ const initialForm = {
 
 export default function CreateDonationRequestPage() {
     const router = useRouter();
+    const apiBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
     const [form, setForm] = useState(initialForm);
 
@@ -60,7 +61,14 @@ export default function CreateDonationRequestPage() {
                 const [districtRes, upazilaRes, profileRes] = await Promise.all([
                     fetch("/districts.json"),
                     fetch("/upazilas.json"),
-                    fetch("/api/users/profile", { cache: "no-store" }),
+                    fetch(`${apiBaseUrl}/api/auth/me`, {
+                        method: "GET",
+                        headers: {
+                            ...getAuthHeaders(),
+                        },
+                        credentials: "include",
+                        cache: "no-store",
+                    }),
                 ]);
 
                 const districtJson = await districtRes.json();
@@ -224,9 +232,19 @@ export default function CreateDonationRequestPage() {
 
             console.log("CREATE_DONATION_REQUEST_PAYLOAD:", requestPayload);
 
-            const data = await createDonationRequest(requestPayload);
+            const response = await fetch(`${apiBaseUrl}/api/donationRequests`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders(),
+                },
+                credentials: "include",
+                body: JSON.stringify(requestPayload),
+            });
 
-            if (!data?.success) {
+            const data = await response.json();
+
+            if (!response.ok || !data?.success) {
                 throw new Error(data?.message || "Failed to create donation request.");
             }
 
