@@ -96,6 +96,9 @@ export default function DashboardHomePage() {
 
         const meResponse = await fetch(`${baseUrl}/api/auth/me`, {
           method: "GET",
+          headers: {
+            ...getAuthHeaders(),
+          },
           credentials: "include",
           cache: "no-store",
         });
@@ -110,6 +113,9 @@ export default function DashboardHomePage() {
 
         const statsResponse = await fetch(`${baseUrl}/api/dashboard/stats`, {
           method: "GET",
+          headers: {
+            ...getAuthHeaders(),
+          },
           credentials: "include",
           cache: "no-store",
         });
@@ -165,6 +171,9 @@ export default function DashboardHomePage() {
           )}&status=all&page=1&limit=3`,
           {
             method: "GET",
+            headers: {
+              ...getAuthHeaders(),
+            },
             cache: "no-store",
             credentials: "include",
           }
@@ -204,6 +213,7 @@ export default function DashboardHomePage() {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            ...getAuthHeaders(),
           },
           credentials: "include",
           body: JSON.stringify({
@@ -223,10 +233,10 @@ export default function DashboardHomePage() {
         prev.map((request) =>
           request._id === requestId || request.id === requestId
             ? {
-                ...request,
-                donationStatus: "canceled",
-                status: "canceled",
-              }
+              ...request,
+              donationStatus: "canceled",
+              status: "canceled",
+            }
             : request
         )
       );
@@ -364,16 +374,16 @@ export default function DashboardHomePage() {
             {role === "admin"
               ? "Platform Statistics"
               : role === "volunteer"
-              ? "Request Statistics"
-              : "My Request Statistics"}
+                ? "Request Statistics"
+                : "My Request Statistics"}
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
             {role === "admin"
               ? "Quick overview of LifeDrop platform activity."
               : role === "volunteer"
-              ? "Overview of public donation request activity."
-              : "Overview of your own donation request activity."}
+                ? "Overview of public donation request activity."
+                : "Overview of your own donation request activity."}
           </p>
         </div>
 
@@ -545,10 +555,9 @@ export default function DashboardHomePage() {
 
                         <td className="px-5 py-4">
                           <span
-                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
-                              statusStyles[status] ||
+                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${statusStyles[status] ||
                               "border-slate-100 bg-slate-50 text-slate-600"
-                            }`}
+                              }`}
                           >
                             {status === "inprogress" ? "in progress" : status}
                           </span>
@@ -807,10 +816,9 @@ export default function DashboardHomePage() {
 
                       <td className="px-5 py-4">
                         <span
-                          className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
-                            statusStyles[status] ||
+                          className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${statusStyles[status] ||
                             "border-slate-100 bg-slate-50 text-slate-600"
-                          }`}
+                            }`}
                         >
                           {status === "inprogress" ? "in progress" : status}
                         </span>

@@ -17,6 +17,7 @@ import {
     FaUser,
     FaUserPlus,
 } from "react-icons/fa6";
+import { createJwtToken } from "@/lib/jwt-token";
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -261,6 +262,8 @@ export default function SignupPage() {
                     defaultsData?.message || "User defaults update failed."
                 );
             }
+
+            await createJwtToken(userEmail);
 
             toast.success("Account created successfully.");
             router.push("/auth/login");
