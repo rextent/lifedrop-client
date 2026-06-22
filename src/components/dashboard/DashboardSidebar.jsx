@@ -141,6 +141,16 @@ export default function DashboardSidebar({ children }) {
       icon: FaUser,
     },
     {
+      name: "Create Request",
+      href: "/dashboard/create-donation-request",
+      icon: FaPlus,
+    },
+    {
+      name: "My Request",
+      href: "/dashboard/my-donation-requests",
+      icon: FaList,
+    },
+    {
       name: "Public Request",
       href: "/dashboard/all-blood-donation-request",
       icon: FaClipboardList,
@@ -151,8 +161,8 @@ export default function DashboardSidebar({ children }) {
     role === "admin"
       ? adminLinks
       : role === "volunteer"
-      ? volunteerLinks
-      : donorLinks;
+        ? volunteerLinks
+        : donorLinks;
 
   const isActiveLink = (href) => {
     if (href === "/dashboard") {
@@ -214,9 +224,8 @@ export default function DashboardSidebar({ children }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-72 transform border-r border-slate-100 bg-white shadow-xl transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed left-0 top-0 z-50 h-screen w-72 transform border-r border-slate-100 bg-white shadow-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
@@ -277,11 +286,10 @@ export default function DashboardSidebar({ children }) {
                   key={link.href}
                   href={link.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black transition ${
-                    active
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black transition ${active
                       ? "bg-red-600 text-white shadow-sm shadow-red-200"
                       : "text-slate-600 hover:bg-red-50 hover:text-red-600"
-                  }`}
+                    }`}
                 >
                   <Icon />
                   {link.name}
