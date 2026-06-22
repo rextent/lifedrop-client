@@ -15,6 +15,7 @@ import {
   FaRotateLeft,
   FaUser,
 } from "react-icons/fa6";
+import ChangePasswordCard from "@/components/dashboard/ChangePasswordCard";
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -567,6 +568,7 @@ export default function ProfilePage() {
           )}
         </div>
       </form>
+      <ChangePasswordCard />
     </section>
   );
 }

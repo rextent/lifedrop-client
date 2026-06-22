@@ -8,14 +8,14 @@ import {
   FaArrowRight,
   FaCalendarDays,
   FaClock,
+  FaDollarSign,
   FaDroplet,
   FaEye,
+  FaHandshake,
   FaPenToSquare,
   FaUser,
-  FaXmark,
   FaUsers,
-  FaHandshake,
-  FaDollarSign,
+  FaXmark,
 } from "react-icons/fa6";
 
 const statusStyles = {
@@ -46,13 +46,22 @@ const roleContent = {
   },
 };
 
+const formatDate = (dateValue) => {
+  if (!dateValue) return "N/A";
+
+  return new Date(dateValue).toLocaleDateString();
+};
+
 export default function DashboardHomePage() {
   const { data: session, isPending } = authClient.useSession();
   const sessionUser = session?.user;
 
   const [currentUser, setCurrentUser] = useState(null);
   const [stats, setStats] = useState(null);
+
   const [requests, setRequests] = useState([]);
+  const [adminRecentRequests, setAdminRecentRequests] = useState([]);
+  const [adminRecentFundings, setAdminRecentFundings] = useState([]);
 
   const [userLoading, setUserLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -76,6 +85,7 @@ export default function DashboardHomePage() {
       setCurrentUser(null);
       setUserLoading(false);
       setStatsLoading(false);
+      setRequestsLoading(false);
       return;
     }
 
@@ -113,10 +123,14 @@ export default function DashboardHomePage() {
         }
 
         setStats(statsData.stats || null);
+        setAdminRecentRequests(statsData.recentDonationRequests || []);
+        setAdminRecentFundings(statsData.recentFundings || []);
       } catch (error) {
         console.error("DASHBOARD_USER_STATS_ERROR:", error);
         setCurrentUser(sessionUser || null);
         setStats(null);
+        setAdminRecentRequests([]);
+        setAdminRecentFundings([]);
       } finally {
         setUserLoading(false);
         setStatsLoading(false);
@@ -128,6 +142,12 @@ export default function DashboardHomePage() {
 
   useEffect(() => {
     if (isPending || userLoading) return;
+
+    if (role === "admin") {
+      setRequests([]);
+      setRequestsLoading(false);
+      return;
+    }
 
     if (!userEmail) {
       setRequests([]);
@@ -166,7 +186,7 @@ export default function DashboardHomePage() {
     };
 
     loadRecentRequests();
-  }, [isPending, userLoading, userEmail, baseUrl]);
+  }, [isPending, userLoading, userEmail, baseUrl, role]);
 
   const handleCancelRequest = async (requestId) => {
     const confirmed = window.confirm(
@@ -398,8 +418,291 @@ export default function DashboardHomePage() {
         )}
       </div>
 
-      {/* Recent Donation Requests - hidden if no request */}
-      {!requestsLoading && requests.length > 0 && (
+      {/* Admin Latest 3 Donation Requests */}
+      {role === "admin" && (
+        <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
+          <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-wide text-red-600">
+                Latest Requests
+              </p>
+
+              <h2 className="mt-1 text-2xl font-black text-slate-950">
+                Latest 3 Donation Requests
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Showing the most recent blood donation requests from all users.
+              </p>
+            </div>
+
+            <Link
+              href="/dashboard/all-blood-donation-request"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-black text-white transition hover:bg-red-700"
+            >
+              View All Requests
+              <FaArrowRight />
+            </Link>
+          </div>
+
+          {statsLoading ? (
+            <div className="p-6">
+              <p className="text-sm font-bold text-slate-500">
+                Loading latest donation requests...
+              </p>
+            </div>
+          ) : adminRecentRequests.length === 0 ? (
+            <div className="p-6">
+              <p className="text-sm font-bold text-slate-500">
+                No recent donation request found.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1100px] border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500">
+                    <th className="px-5 py-4">Requester</th>
+                    <th className="px-5 py-4">Recipient</th>
+                    <th className="px-5 py-4">Location</th>
+                    <th className="px-5 py-4">Date & Time</th>
+                    <th className="px-5 py-4">Blood</th>
+                    <th className="px-5 py-4">Status</th>
+                    <th className="px-5 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {adminRecentRequests.map((request) => {
+                    const requestId = request._id || request.id;
+                    const status =
+                      request.donationStatus || request.status || "pending";
+
+                    return (
+                      <tr
+                        key={requestId}
+                        className="border-b border-slate-100 last:border-b-0"
+                      >
+                        <td className="px-5 py-4">
+                          <div>
+                            <p className="font-black text-slate-950">
+                              {request.requesterName || "N/A"}
+                            </p>
+
+                            <p className="text-xs text-slate-500">
+                              {request.requesterEmail || "N/A"}
+                            </p>
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                              <FaUser />
+                            </div>
+
+                            <div>
+                              <p className="font-black text-slate-950">
+                                {request.recipientName || "N/A"}
+                              </p>
+
+                              <p className="text-xs text-slate-500">
+                                Recipient Name
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <p className="font-bold text-slate-800">
+                            {request.recipientDistrict || "N/A"}
+                          </p>
+
+                          <p className="text-sm text-slate-500">
+                            {request.recipientUpazila || "N/A"}
+                          </p>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="space-y-1">
+                            <p className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                              <FaCalendarDays className="text-red-500" />
+                              {request.donationDate || "N/A"}
+                            </p>
+
+                            <p className="flex items-center gap-2 text-sm text-slate-500">
+                              <FaClock className="text-red-400" />
+                              {request.donationTime || "N/A"}
+                            </p>
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <span className="inline-flex rounded-xl bg-red-600 px-3 py-1.5 text-sm font-black text-white">
+                            {request.bloodGroup || "N/A"}
+                          </span>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <span
+                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
+                              statusStyles[status] ||
+                              "border-slate-100 bg-slate-50 text-slate-600"
+                            }`}
+                          >
+                            {status === "inprogress" ? "in progress" : status}
+                          </span>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link
+                              href={`/dashboard/donation-requests/${requestId}`}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white"
+                              title="View"
+                            >
+                              <FaEye />
+                            </Link>
+
+                            {status === "pending" && (
+                              <Link
+                                href={`/dashboard/edit-donation-request/${requestId}`}
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-800 hover:text-white"
+                                title="Edit"
+                              >
+                                <FaPenToSquare />
+                              </Link>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Admin Latest 3 Funding History */}
+      {role === "admin" && (
+        <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
+          <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-wide text-red-600">
+                Latest Fundings
+              </p>
+
+              <h2 className="mt-1 text-2xl font-black text-slate-950">
+                Latest 3 Funding History
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Showing the most recent paid funding records from users.
+              </p>
+            </div>
+
+            <Link
+              href="/dashboard/fundings"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-black text-white transition hover:bg-red-700"
+            >
+              View All Fundings
+              <FaArrowRight />
+            </Link>
+          </div>
+
+          {statsLoading ? (
+            <div className="p-6">
+              <p className="text-sm font-bold text-slate-500">
+                Loading latest funding records...
+              </p>
+            </div>
+          ) : adminRecentFundings.length === 0 ? (
+            <div className="p-6">
+              <p className="text-sm font-bold text-slate-500">
+                No recent funding record found.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px] border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500">
+                    <th className="px-5 py-4">User</th>
+                    <th className="px-5 py-4">Email</th>
+                    <th className="px-5 py-4">Amount</th>
+                    <th className="px-5 py-4">Status</th>
+                    <th className="px-5 py-4">Funding Date</th>
+                    <th className="px-5 py-4">Transaction ID</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {adminRecentFundings.map((funding) => (
+                    <tr
+                      key={funding._id}
+                      className="border-b border-slate-100 last:border-b-0"
+                    >
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                            <FaUser />
+                          </div>
+
+                          <div>
+                            <p className="font-black text-slate-950">
+                              {funding.userName || "N/A"}
+                            </p>
+
+                            <p className="text-xs text-slate-500">
+                              Funded User
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <p className="text-sm font-bold text-slate-700">
+                          {funding.userEmail || "N/A"}
+                        </p>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span className="inline-flex rounded-xl bg-red-600 px-3 py-1.5 text-sm font-black text-white">
+                          ${funding.amount || 0}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span className="inline-flex rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-black capitalize text-emerald-700">
+                          {funding.paymentStatus || "paid"}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <p className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                          <FaCalendarDays className="text-red-500" />
+                          {formatDate(funding.createdAt)}
+                        </p>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <p className="max-w-[250px] truncate text-sm font-bold text-slate-600">
+                          {funding.transactionId || "N/A"}
+                        </p>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Recent Donation Requests - Donor/Volunteer */}
+      {role !== "admin" && !requestsLoading && requests.length > 0 && (
         <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -509,7 +812,7 @@ export default function DashboardHomePage() {
                             "border-slate-100 bg-slate-50 text-slate-600"
                           }`}
                         >
-                          {status}
+                          {status === "inprogress" ? "in progress" : status}
                         </span>
                       </td>
 
@@ -572,8 +875,8 @@ export default function DashboardHomePage() {
         </div>
       )}
 
-      {/* Loading recent requests */}
-      {requestsLoading && (
+      {/* Loading recent requests for donor/volunteer */}
+      {role !== "admin" && requestsLoading && (
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           <p className="text-sm font-bold text-slate-500">
             Loading recent donation requests...

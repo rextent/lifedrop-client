@@ -15,6 +15,7 @@ import {
   FaClipboardList,
   FaRightFromBracket,
   FaXmark,
+  FaMoneyBillWave,
 } from "react-icons/fa6";
 
 export default function DashboardSidebar({ children }) {
@@ -126,6 +127,11 @@ export default function DashboardSidebar({ children }) {
       name: "Public Request",
       href: "/dashboard/all-blood-donation-request",
       icon: FaClipboardList,
+    },
+    {
+      name: "Funding",
+      href: "/dashboard/fundings",
+      icon: FaMoneyBillWave,
     },
   ];
 
@@ -287,8 +293,8 @@ export default function DashboardSidebar({ children }) {
                   href={link.href}
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black transition ${active
-                      ? "bg-red-600 text-white shadow-sm shadow-red-200"
-                      : "text-slate-600 hover:bg-red-50 hover:text-red-600"
+                    ? "bg-red-600 text-white shadow-sm shadow-red-200"
+                    : "text-slate-600 hover:bg-red-50 hover:text-red-600"
                     }`}
                 >
                   <Icon />
