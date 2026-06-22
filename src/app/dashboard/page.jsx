@@ -5,8 +5,19 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
   FaArrowRight,
   FaCalendarDays,
+  FaChartColumn,
+  FaChartLine,
   FaClock,
   FaDollarSign,
   FaDroplet,
@@ -25,6 +36,33 @@ const statusStyles = {
   done: "bg-emerald-50 text-emerald-700 border-emerald-100",
   canceled: "bg-red-50 text-red-700 border-red-100",
 };
+
+const emptyChartData = {
+  daily: [],
+  weekly: [],
+  monthly: [],
+};
+
+const chartTabs = [
+  {
+    key: "daily",
+    label: "Daily",
+    title: "Daily Donation Requests",
+    description: "Donation requests created in the last 7 days.",
+  },
+  {
+    key: "weekly",
+    label: "Weekly",
+    title: "Weekly Donation Requests",
+    description: "Donation requests created in the last 4 weeks.",
+  },
+  {
+    key: "monthly",
+    label: "Monthly",
+    title: "Monthly Donation Requests",
+    description: "Donation requests created in the last 6 months.",
+  },
+];
 
 const roleContent = {
   admin: {
@@ -59,6 +97,9 @@ export default function DashboardHomePage() {
 
   const [currentUser, setCurrentUser] = useState(null);
   const [stats, setStats] = useState(null);
+  const [donationRequestChart, setDonationRequestChart] =
+    useState(emptyChartData);
+  const [activeChartTab, setActiveChartTab] = useState("daily");
 
   const [requests, setRequests] = useState([]);
   const [adminRecentRequests, setAdminRecentRequests] = useState([]);
@@ -74,6 +115,11 @@ export default function DashboardHomePage() {
   const role = currentUser?.role || sessionUser?.role || "donor";
   const roleInfo = roleContent[role] || roleContent.donor;
   const isPlatformDashboard = role === "admin" || role === "volunteer";
+
+  const activeChartInfo =
+    chartTabs.find((tab) => tab.key === activeChartTab) || chartTabs[0];
+
+  const activeChartData = donationRequestChart?.[activeChartTab] || [];
 
   const userName =
     currentUser?.name || sessionUser?.name || roleInfo.fallbackName;
@@ -131,12 +177,16 @@ export default function DashboardHomePage() {
         }
 
         setStats(statsData.stats || null);
+        setDonationRequestChart(
+          statsData.donationRequestChart || emptyChartData
+        );
         setAdminRecentRequests(statsData.recentDonationRequests || []);
         setAdminRecentFundings(statsData.recentFundings || []);
       } catch (error) {
         console.error("DASHBOARD_USER_STATS_ERROR:", error);
         setCurrentUser(sessionUser || null);
         setStats(null);
+        setDonationRequestChart(emptyChartData);
         setAdminRecentRequests([]);
         setAdminRecentFundings([]);
       } finally {
@@ -235,10 +285,10 @@ export default function DashboardHomePage() {
         prev.map((request) =>
           request._id === requestId || request.id === requestId
             ? {
-              ...request,
-              donationStatus: "canceled",
-              status: "canceled",
-            }
+                ...request,
+                donationStatus: "canceled",
+                status: "canceled",
+              }
             : request
         )
       );
@@ -348,7 +398,9 @@ export default function DashboardHomePage() {
           </p>
 
           <h2 className="mt-1 text-2xl font-black text-slate-950">
-            {isPlatformDashboard ? "Platform Statistics" : "My Request Statistics"}
+            {isPlatformDashboard
+              ? "Platform Statistics"
+              : "My Request Statistics"}
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
@@ -399,8 +451,160 @@ export default function DashboardHomePage() {
         )}
       </div>
 
-      {/* Admin Latest 3 Donation Requests */}
-      {role === "admin" && (
+      {/* Donation Request Chart - Admin/Volunteer */}
+      {isPlatformDashboard && (
+        <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-red-600">
+                <FaChartLine />
+                Donation Request Analytics
+              </p>
+
+              <h2 className="mt-1 text-2xl font-black text-slate-950">
+                {activeChartInfo.title}
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                {activeChartInfo.description}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2 rounded-2xl bg-slate-50 p-1">
+              {chartTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveChartTab(tab.key)}
+                  className={`rounded-xl px-4 py-2 text-sm font-black transition ${
+                    activeChartTab === tab.key
+                      ? "bg-red-600 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-white hover:text-red-600"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="h-[340px] w-full rounded-3xl bg-slate-50 p-4">
+            {statsLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-sm font-bold text-slate-500">
+                  Loading chart data...
+                </p>
+              </div>
+            ) : activeChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={activeChartData}
+                  margin={{
+                    top: 15,
+                    right: 20,
+                    left: 0,
+                    bottom: 5,
+                  }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="requestChartFill"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="#dc2626"
+                        stopOpacity={0.35}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="#dc2626"
+                        stopOpacity={0.02}
+                      />
+                    </linearGradient>
+                  </defs>
+
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+
+                  <XAxis
+                    dataKey="label"
+                    tick={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      fill: "#64748b",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      fill: "#64748b",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "16px",
+                      border: "1px solid #fee2e2",
+                      boxShadow: "0 10px 30px rgba(15,23,42,0.10)",
+                      fontWeight: 700,
+                    }}
+                    labelStyle={{
+                      color: "#0f172a",
+                      fontWeight: 900,
+                    }}
+                    formatter={(value) => [
+                      `${value} requests`,
+                      "Donation Requests",
+                    ]}
+                  />
+
+                  <Area
+                    type="monotone"
+                    dataKey="requests"
+                    stroke="#dc2626"
+                    strokeWidth={3}
+                    fill="url(#requestChartFill)"
+                    activeDot={{
+                      r: 6,
+                      strokeWidth: 3,
+                      stroke: "#ffffff",
+                      fill: "#dc2626",
+                    }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-xl text-red-600">
+                  <FaChartColumn />
+                </div>
+
+                <h3 className="mt-4 text-lg font-black text-slate-950">
+                  No chart data found
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Donation request chart data will appear after requests are
+                  created.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Admin/Volunteer Latest 3 Donation Requests */}
+      {isPlatformDashboard && (
         <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -526,9 +730,10 @@ export default function DashboardHomePage() {
 
                         <td className="px-5 py-4">
                           <span
-                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${statusStyles[status] ||
+                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
+                              statusStyles[status] ||
                               "border-slate-100 bg-slate-50 text-slate-600"
-                              }`}
+                            }`}
                           >
                             {status === "inprogress" ? "in progress" : status}
                           </span>
@@ -565,8 +770,8 @@ export default function DashboardHomePage() {
         </div>
       )}
 
-      {/* Admin Latest 3 Funding History */}
-      {role === "admin" && (
+      {/* Admin/Volunteer Latest 3 Funding History */}
+      {isPlatformDashboard && (
         <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -681,7 +886,7 @@ export default function DashboardHomePage() {
         </div>
       )}
 
-      {/* Recent Donation Requests - Donor/Volunteer */}
+      {/* Recent Donation Requests - Donor */}
       {!isPlatformDashboard && !requestsLoading && requests.length > 0 && (
         <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -787,9 +992,10 @@ export default function DashboardHomePage() {
 
                       <td className="px-5 py-4">
                         <span
-                          className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${statusStyles[status] ||
+                          className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
+                            statusStyles[status] ||
                             "border-slate-100 bg-slate-50 text-slate-600"
-                            }`}
+                          }`}
                         >
                           {status === "inprogress" ? "in progress" : status}
                         </span>
@@ -854,7 +1060,7 @@ export default function DashboardHomePage() {
         </div>
       )}
 
-      {/* Loading recent requests for donor/volunteer */}
+      {/* Loading recent requests for donor */}
       {!isPlatformDashboard && requestsLoading && (
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           <p className="text-sm font-bold text-slate-500">

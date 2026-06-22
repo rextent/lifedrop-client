@@ -523,7 +523,7 @@ export default function SearchDonorsPage() {
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
-              No donor matched your selected filter.
+              No donor matched your selected area.
             </p>
           </div>
         )}
