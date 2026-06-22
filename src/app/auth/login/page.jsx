@@ -48,6 +48,7 @@ export default function LoginPage() {
     return true;
   };
 
+
   const handleLogin = async (event) => {
     event.preventDefault();
 
@@ -56,8 +57,10 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
+      const userEmail = form.email.trim().toLowerCase();
+
       const result = await authClient.signIn.email({
-        email: form.email.trim().toLowerCase(),
+        email: userEmail,
         password: form.password,
       });
 
@@ -74,15 +77,11 @@ export default function LoginPage() {
         return;
       }
 
-      await createJwtToken(email);
+      await createJwtToken(userEmail);
 
       toast.success("Login successful.");
 
-      // Dashboard ready thakle eta use koro:
-      // router.push("/dashboard");
-
-      // Apatoto safe redirect:
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } catch (error) {
       console.error("LOGIN_ERROR:", error);
