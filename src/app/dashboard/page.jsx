@@ -17,6 +17,7 @@ import {
   FaUsers,
   FaXmark,
 } from "react-icons/fa6";
+import { getAuthHeaders } from "@/lib/jwt-token";
 
 const statusStyles = {
   pending: "bg-amber-50 text-amber-700 border-amber-100",
