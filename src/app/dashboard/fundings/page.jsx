@@ -1,5 +1,6 @@
 "use client";
 
+import { getAuthHeaders } from "@/lib/jwt-token";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import {
@@ -60,6 +61,9 @@ export default function AdminFundingsPage() {
 
       const response = await fetch(`${baseUrl}/api/admin/fundings?${params}`, {
         method: "GET",
+        headers: {
+          ...getAuthHeaders(),
+        },
         credentials: "include",
         cache: "no-store",
       });
@@ -265,11 +269,10 @@ export default function AdminFundingsPage() {
                   key={button.value}
                   type="button"
                   onClick={() => handleStatusChange(button.value)}
-                  className={`rounded-xl px-4 py-2 text-sm font-black transition ${
-                    statusFilter === button.value
+                  className={`rounded-xl px-4 py-2 text-sm font-black transition ${statusFilter === button.value
                       ? "bg-red-600 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
-                  }`}
+                    }`}
                 >
                   {button.label}
                 </button>
@@ -465,11 +468,10 @@ export default function AdminFundingsPage() {
                       key={pageNumber}
                       type="button"
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black transition ${
-                        currentPage === pageNumber
+                      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black transition ${currentPage === pageNumber
                           ? "bg-red-600 text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
-                      }`}
+                        }`}
                     >
                       {pageNumber}
                     </button>
