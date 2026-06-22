@@ -43,7 +43,7 @@ export default function EditDonationRequestPage() {
   const router = useRouter();
 
   const requestId = params?.id;
-  const apiBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  const apiBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
   const [form, setForm] = useState(initialForm);
   const [user, setUser] = useState(null);
@@ -60,26 +60,35 @@ export default function EditDonationRequestPage() {
     return now.toISOString().split("T")[0];
   }, []);
 
+  const backHref =
+    user?.role === "admin" || user?.role === "volunteer"
+      ? "/dashboard/all-blood-donation-request"
+      : "/dashboard/my-donation-requests";
+
   useEffect(() => {
     const loadInitialData = async () => {
       try {
         setLoading(true);
 
-        const [districtRes, upazilaRes, profileRes] = await Promise.all([
+        const [districtRes, upazilaRes, meRes] = await Promise.all([
           fetch("/districts.json"),
           fetch("/upazilas.json"),
-          fetch("/api/users/profile", { cache: "no-store" }),
+          fetch(`${apiBaseUrl}/api/auth/me`, {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          }),
         ]);
 
         const districtJson = await districtRes.json();
         const upazilaJson = await upazilaRes.json();
-        const profileData = await profileRes.json();
+        const meData = await meRes.json();
 
-        if (!profileRes.ok) {
-          throw new Error(profileData?.message || "Failed to load profile.");
+        if (!meRes.ok || !meData?.success) {
+          throw new Error(meData?.message || "Failed to load current user.");
         }
 
-        const currentUser = profileData?.user;
+        const currentUser = meData?.user;
 
         if (!currentUser?.email) {
           throw new Error("User email not found. Please login again.");
@@ -90,13 +99,15 @@ export default function EditDonationRequestPage() {
             currentUser.email
           )}`,
           {
+            method: "GET",
+            credentials: "include",
             cache: "no-store",
           }
         );
 
         const requestData = await requestRes.json();
 
-        if (!requestRes.ok) {
+        if (!requestRes.ok || !requestData?.success) {
           throw new Error(
             requestData?.message || "Failed to load donation request."
           );
@@ -243,7 +254,7 @@ export default function EditDonationRequestPage() {
       setUpdating(true);
 
       const updatePayload = {
-        requesterEmail: user?.email || form.requesterEmail,
+        requesterEmail: form.requesterEmail,
 
         recipientName: form.recipientName.trim(),
         recipientDistrict: form.recipientDistrict,
@@ -265,18 +276,20 @@ export default function EditDonationRequestPage() {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify(updatePayload),
         }
       );
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data?.success) {
         throw new Error(data?.message || "Failed to update donation request.");
       }
 
       toast.success("Donation request updated successfully.");
-      router.push("/dashboard/my-donation-requests");
+
+      router.push(backHref);
       router.refresh();
     } catch (error) {
       toast.error(error.message || "Something went wrong.");
@@ -309,12 +322,19 @@ export default function EditDonationRequestPage() {
       <div className="overflow-hidden rounded-[1.75rem] border border-slate-100 bg-white shadow-sm">
         <div className="bg-gradient-to-br from-red-600 to-rose-700 px-5 py-6 text-white">
           <Link
-            href="/dashboard/my-donation-requests"
+            href={backHref}
             className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-white backdrop-blur transition hover:bg-white/20"
           >
             <FaArrowLeft />
             Back to requests
           </Link>
+
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide backdrop-blur">
+            <FaDroplet />
+            {user?.role === "admin"
+              ? "Admin Edit Access"
+              : "My Request Edit"}
+          </div>
 
           <h1 className="text-3xl font-black tracking-tight">
             Edit Donation Request
@@ -418,6 +438,7 @@ export default function EditDonationRequestPage() {
                   className={`${inputClass} pl-11`}
                 >
                   <option value="">Select district</option>
+
                   {districts.map((district) => (
                     <option key={district.id} value={district.id}>
                       {district.name}
@@ -552,7 +573,9 @@ export default function EditDonationRequestPage() {
             <p className="text-sm text-slate-500">
               Current status:{" "}
               <span className="font-black capitalize text-red-600">
-                {form.donationStatus}
+                {form.donationStatus === "inprogress"
+                  ? "in progress"
+                  : form.donationStatus}
               </span>
             </p>
 
