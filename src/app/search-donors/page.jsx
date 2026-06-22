@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
+  FaDownload,
   FaDroplet,
   FaEnvelope,
   FaLocationDot,
@@ -10,25 +14,25 @@ import {
   FaUser,
 } from "react-icons/fa6";
 
-const bloodGroups = ["all", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 const defaultFilters = {
-  bloodGroup: "all",
+  bloodGroup: "",
   district: "",
   upazila: "",
 };
 
 export default function SearchDonorsPage() {
-  const [urlReady, setUrlReady] = useState(false);
-
   const [donors, setDonors] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState(false);
 
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
   const [filteredUpazilas, setFilteredUpazilas] = useState([]);
 
-  const [bloodGroup, setBloodGroup] = useState("all");
+  const [bloodGroup, setBloodGroup] = useState("");
   const [selectedDistrictId, setSelectedDistrictId] = useState("");
   const [selectedDistrictName, setSelectedDistrictName] = useState("");
   const [selectedUpazila, setSelectedUpazila] = useState("");
@@ -43,79 +47,7 @@ export default function SearchDonorsPage() {
     totalPages: 0,
   });
 
-  const updateUrl = (filters, pageNumber) => {
-    const params = new URLSearchParams();
-
-    if (filters.bloodGroup && filters.bloodGroup !== "all") {
-      params.set("bloodGroup", filters.bloodGroup);
-    }
-
-    if (filters.district) {
-      params.set("district", filters.district);
-    }
-
-    if (filters.upazila) {
-      params.set("upazila", filters.upazila);
-    }
-
-    if (pageNumber > 1) {
-      params.set("page", String(pageNumber));
-    }
-
-    const queryString = params.toString();
-    const nextUrl = queryString
-      ? `/search-donors?${queryString}`
-      : "/search-donors";
-
-    window.history.replaceState(null, "", nextUrl);
-  };
-
-  const syncStateFromUrl = (districtList, upazilaList) => {
-    const searchParams = new URLSearchParams(window.location.search);
-
-    const urlBloodGroup = searchParams.get("bloodGroup") || "all";
-    const urlDistrict = searchParams.get("district") || "";
-    const urlUpazila = searchParams.get("upazila") || "";
-    const urlPage = Number(searchParams.get("page")) || 1;
-
-    const safeBloodGroup = bloodGroups.includes(urlBloodGroup)
-      ? urlBloodGroup
-      : "all";
-
-    const selectedDistrict = districtList.find(
-      (district) => district.name === urlDistrict
-    );
-
-    const matchedUpazilas = selectedDistrict
-      ? upazilaList
-          .filter(
-            (upazila) =>
-              String(upazila.district_id) === String(selectedDistrict.id)
-          )
-          .sort((a, b) => a.name.localeCompare(b.name))
-      : [];
-
-    const safeUpazila = matchedUpazilas.some(
-      (upazila) => upazila.name === urlUpazila
-    )
-      ? urlUpazila
-      : "";
-
-    setBloodGroup(safeBloodGroup);
-    setSelectedDistrictId(selectedDistrict?.id || "");
-    setSelectedDistrictName(selectedDistrict?.name || "");
-    setSelectedUpazila(safeUpazila);
-    setFilteredUpazilas(matchedUpazilas);
-
-    setAppliedFilters({
-      bloodGroup: safeBloodGroup,
-      district: selectedDistrict?.name || "",
-      upazila: safeUpazila,
-    });
-
-    setPage(urlPage > 0 ? urlPage : 1);
-    setUrlReady(true);
-  };
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     const loadLocationData = async () => {
@@ -138,82 +70,95 @@ export default function SearchDonorsPage() {
 
         setDistricts(districtList);
         setUpazilas(upazilaList);
-
-        syncStateFromUrl(districtList, upazilaList);
       } catch (error) {
         console.error("DONOR_LOCATION_JSON_LOAD_ERROR:", error);
         setDistricts([]);
         setUpazilas([]);
         setFilteredUpazilas([]);
-        setUrlReady(true);
       }
     };
 
     loadLocationData();
   }, []);
 
-  useEffect(() => {
-    if (!urlReady) return;
+  const fetchDonors = async (filters, pageNumber = 1) => {
+    try {
+      setLoading(true);
 
-    const loadDonors = async () => {
-      try {
-        setLoading(true);
+      const queryParams = new URLSearchParams({
+        page: String(pageNumber),
+        limit: "8",
+        bloodGroup: filters.bloodGroup,
+        district: filters.district,
+        upazila: filters.upazila,
+      });
 
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-
-        const queryParams = new URLSearchParams({
-          page: String(page),
-          limit: "8",
-          bloodGroup: appliedFilters.bloodGroup,
-          district: appliedFilters.district,
-          upazila: appliedFilters.upazila,
-        });
-
-        const response = await fetch(
-          `${baseUrl}/api/donors?${queryParams.toString()}`,
-          {
-            method: "GET",
-            cache: "no-store",
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data?.message || "Failed to load donors.");
+      const response = await fetch(
+        `${baseUrl}/api/donors?${queryParams.toString()}`,
+        {
+          method: "GET",
+          cache: "no-store",
         }
+      );
 
-        setDonors(data?.donors || []);
-        setPagination(
-          data?.pagination || {
-            page: 1,
-            limit: 8,
-            total: 0,
-            totalPages: 0,
-          }
-        );
-      } catch (error) {
-        console.error("PUBLIC_DONORS_ERROR:", error);
-        setDonors([]);
-        setPagination({
-          page: 1,
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Failed to load donors.");
+      }
+
+      setDonors(data?.donors || []);
+      setPagination(
+        data?.pagination || {
+          page: pageNumber,
           limit: 8,
           total: 0,
           totalPages: 0,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+        }
+      );
+    } catch (error) {
+      console.error("PUBLIC_DONORS_ERROR:", error);
+      toast.error(error.message || "Failed to load donors.");
 
-    loadDonors();
-  }, [
-    urlReady,
-    page,
-    appliedFilters.bloodGroup,
-    appliedFilters.district,
-    appliedFilters.upazila,
-  ]);
+      setDonors([]);
+      setPagination({
+        page: 1,
+        limit: 8,
+        total: 0,
+        totalPages: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAllSearchDonors = async () => {
+    const totalResults = pagination.total || donors.length || 10000;
+
+    const queryParams = new URLSearchParams({
+      page: "1",
+      limit: String(totalResults),
+      bloodGroup: appliedFilters.bloodGroup,
+      district: appliedFilters.district,
+      upazila: appliedFilters.upazila,
+    });
+
+    const response = await fetch(
+      `${baseUrl}/api/donors?${queryParams.toString()}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Failed to load donors for PDF.");
+    }
+
+    return data?.donors || [];
+  };
 
   const handleDistrictChange = (districtId) => {
     const selectedDistrict = districts.find(
@@ -230,8 +175,23 @@ export default function SearchDonorsPage() {
     setFilteredUpazilas(matchedUpazilas);
   };
 
-  const handleApplyFilter = (event) => {
+  const handleApplyFilter = async (event) => {
     event.preventDefault();
+
+    if (!bloodGroup) {
+      toast.error("Please select a blood group.");
+      return;
+    }
+
+    if (!selectedDistrictName) {
+      toast.error("Please select a district.");
+      return;
+    }
+
+    if (!selectedUpazila) {
+      toast.error("Please select an upazila.");
+      return;
+    }
 
     const nextFilters = {
       bloodGroup,
@@ -241,11 +201,13 @@ export default function SearchDonorsPage() {
 
     setPage(1);
     setAppliedFilters(nextFilters);
-    updateUrl(nextFilters, 1);
+    setHasSearched(true);
+
+    await fetchDonors(nextFilters, 1);
   };
 
   const handleResetFilter = () => {
-    setBloodGroup("all");
+    setBloodGroup("");
     setSelectedDistrictId("");
     setSelectedDistrictName("");
     setSelectedUpazila("");
@@ -253,12 +215,135 @@ export default function SearchDonorsPage() {
 
     setPage(1);
     setAppliedFilters(defaultFilters);
-    updateUrl(defaultFilters, 1);
+    setDonors([]);
+    setHasSearched(false);
+    setLoading(false);
+    setPagination({
+      page: 1,
+      limit: 8,
+      total: 0,
+      totalPages: 0,
+    });
   };
 
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = async (pageNumber) => {
+    if (!hasSearched) return;
+
     setPage(pageNumber);
-    updateUrl(appliedFilters, pageNumber);
+    await fetchDonors(appliedFilters, pageNumber);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!hasSearched) {
+      toast.error("Please search donors first.");
+      return;
+    }
+
+    try {
+      setDownloadLoading(true);
+
+      const allDonors = await fetchAllSearchDonors();
+
+      if (allDonors.length === 0) {
+        toast.error("No donors available to download.");
+        return;
+      }
+
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "pt",
+        format: "a4",
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text("LifeDrop Donor Search Results", pageWidth / 2, 45, {
+        align: "center",
+      });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(
+        `Blood Group: ${appliedFilters.bloodGroup} | District: ${appliedFilters.district} | Upazila: ${appliedFilters.upazila}`,
+        pageWidth / 2,
+        68,
+        { align: "center" }
+      );
+
+      doc.text(
+        `Total Donors: ${allDonors.length} | Generated: ${new Date().toLocaleDateString()}`,
+        pageWidth / 2,
+        86,
+        { align: "center" }
+      );
+
+      autoTable(doc, {
+        startY: 110,
+        head: [["SL", "Name", "Email", "Blood Group", "District", "Upazila", "Status"]],
+        body: allDonors.map((donor, index) => [
+          index + 1,
+          donor.name || "N/A",
+          donor.email || "N/A",
+          donor.bloodGroup || "N/A",
+          donor.district || "N/A",
+          donor.upazila || "N/A",
+          donor.status || "active",
+        ]),
+        styles: {
+          font: "helvetica",
+          fontSize: 9,
+          cellPadding: 7,
+          overflow: "linebreak",
+        },
+        headStyles: {
+          fillColor: [220, 38, 38],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252],
+        },
+        columnStyles: {
+          0: { cellWidth: 35 },
+          1: { cellWidth: 130 },
+          2: { cellWidth: 190 },
+          3: { cellWidth: 85 },
+          4: { cellWidth: 110 },
+          5: { cellWidth: 110 },
+          6: { cellWidth: 75 },
+        },
+        margin: {
+          left: 35,
+          right: 35,
+        },
+        didDrawPage: (data) => {
+          const pageCount = doc.internal.getNumberOfPages();
+          const currentPageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+
+          doc.setFontSize(9);
+          doc.setTextColor(120);
+          doc.text(
+            `LifeDrop - Donor Search Results | Page ${currentPageNumber} of ${pageCount}`,
+            pageWidth / 2,
+            doc.internal.pageSize.getHeight() - 20,
+            { align: "center" }
+          );
+        },
+      });
+
+      const fileName = `lifedrop-donors-${appliedFilters.bloodGroup}-${appliedFilters.district}-${appliedFilters.upazila}.pdf`;
+
+      doc.save(fileName);
+
+      toast.success("PDF downloaded successfully.");
+    } catch (error) {
+      console.error("DONOR_PDF_DOWNLOAD_ERROR:", error);
+      toast.error(error.message || "Failed to download PDF.");
+    } finally {
+      setDownloadLoading(false);
+    }
   };
 
   const currentPage = pagination.page || page;
@@ -284,13 +369,13 @@ export default function SearchDonorsPage() {
               </h1>
 
               <p className="mt-4 text-sm leading-6 text-red-50 sm:text-base">
-                Search registered donors by blood group and location.
+                Search registered donors by blood group, district, and upazila.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Filter */}
+        {/* Search Form */}
         <form
           onSubmit={handleApplyFilter}
           className="mb-6 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm"
@@ -307,7 +392,9 @@ export default function SearchDonorsPage() {
             </div>
 
             <p className="text-sm font-bold text-slate-500">
-              Total Found: {pagination.total || 0}
+              {hasSearched
+                ? `Total Found: ${pagination.total || 0}`
+                : "No search yet"}
             </p>
           </div>
 
@@ -322,9 +409,11 @@ export default function SearchDonorsPage() {
                 onChange={(event) => setBloodGroup(event.target.value)}
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-50"
               >
+                <option value="">Select Blood Group</option>
+
                 {bloodGroups.map((group) => (
                   <option key={group} value={group}>
-                    {group === "all" ? "All Blood Groups" : group}
+                    {group}
                   </option>
                 ))}
               </select>
@@ -340,7 +429,7 @@ export default function SearchDonorsPage() {
                 onChange={(event) => handleDistrictChange(event.target.value)}
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-50"
               >
-                <option value="">All Districts</option>
+                <option value="">Select District</option>
 
                 {districts.map((district) => (
                   <option key={district.id} value={district.id}>
@@ -362,7 +451,7 @@ export default function SearchDonorsPage() {
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
               >
                 <option value="">
-                  {selectedDistrictId ? "All Upazilas" : "Select district first"}
+                  {selectedDistrictId ? "Select Upazila" : "Select district first"}
                 </option>
 
                 {filteredUpazilas.map((upazila) => (
@@ -376,10 +465,11 @@ export default function SearchDonorsPage() {
             <div className="flex gap-3 md:items-end">
               <button
                 type="submit"
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700"
+                disabled={loading}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <FaMagnifyingGlass />
-                Search
+                {loading ? "Searching..." : "Search"}
               </button>
 
               <button
@@ -394,8 +484,26 @@ export default function SearchDonorsPage() {
           </div>
         </form>
 
+        {/* Before Search */}
+        {!hasSearched && (
+          <div className="rounded-3xl border border-slate-100 bg-white p-10 text-center shadow-sm">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-red-50 text-2xl text-red-600">
+              <FaMagnifyingGlass />
+            </div>
+
+            <h2 className="mt-5 text-2xl font-black text-slate-950">
+              Search to View Donors
+            </h2>
+
+            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
+              Select blood group, district, and upazila. Donor results will only
+              appear after clicking the search button.
+            </p>
+          </div>
+        )}
+
         {/* Loading */}
-        {loading && (
+        {hasSearched && loading && (
           <div className="rounded-3xl border border-slate-100 bg-white p-8 text-center shadow-sm">
             <p className="text-sm font-bold text-slate-500">
               Loading donors...
@@ -403,8 +511,8 @@ export default function SearchDonorsPage() {
           </div>
         )}
 
-        {/* Empty */}
-        {!loading && donors.length === 0 && (
+        {/* Empty After Search */}
+        {hasSearched && !loading && donors.length === 0 && (
           <div className="rounded-3xl border border-slate-100 bg-white p-10 text-center shadow-sm">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-red-50 text-2xl text-red-600">
               <FaUser />
@@ -420,9 +528,31 @@ export default function SearchDonorsPage() {
           </div>
         )}
 
-        {/* Donor Grid */}
-        {!loading && donors.length > 0 && (
+        {/* Donor Results */}
+        {hasSearched && !loading && donors.length > 0 && (
           <>
+            <div className="mb-5 flex flex-col gap-3 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-red-600">
+                  Search Results
+                </p>
+
+                <h2 className="mt-1 text-xl font-black text-slate-950">
+                  {pagination.total || donors.length} donor found
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleDownloadPDF}
+                disabled={downloadLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <FaDownload />
+                {downloadLoading ? "Generating PDF..." : "Download PDF"}
+              </button>
+            </div>
+
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {donors.map((donor) => {
                 const donorId = donor._id || donor.id;
