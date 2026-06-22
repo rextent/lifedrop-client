@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { FaArrowRight, FaCircleCheck } from "react-icons/fa6";
+import { getAuthHeaders } from "@/lib/jwt-token";
 
 function FundingSuccessContent() {
   const searchParams = useSearchParams();
