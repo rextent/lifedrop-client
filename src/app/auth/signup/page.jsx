@@ -213,10 +213,11 @@ export default function SignupPage() {
             setLoading(true);
 
             const imageUrl = await uploadAvatar();
+            const userEmail = form.email.trim().toLowerCase();
 
             const result = await authClient.signUp.email({
                 name: form.name.trim(),
-                email: form.email.trim().toLowerCase(),
+                email: userEmail,
                 password: form.password,
                 image: imageUrl,
 
@@ -224,6 +225,7 @@ export default function SignupPage() {
                 district: form.district,
                 upazila: form.upazila,
                 role: "donor",
+                status: "active",
             });
 
             if (result?.error) {
@@ -235,6 +237,29 @@ export default function SignupPage() {
 
                 toast.error(errorMessage);
                 return;
+            }
+
+            const baseUrl =
+                process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+            const defaultsResponse = await fetch(`${baseUrl}/api/users/defaults`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: userEmail,
+                    role: "donor",
+                    status: "active",
+                }),
+            });
+
+            const defaultsData = await defaultsResponse.json();
+
+            if (!defaultsResponse.ok || !defaultsData?.success) {
+                throw new Error(
+                    defaultsData?.message || "User defaults update failed."
+                );
             }
 
             toast.success("Account created successfully.");
