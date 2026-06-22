@@ -1,7 +1,8 @@
 "use client";
 
+import { getAuthHeaders } from "@/lib/jwt-token";
 import { useEffect, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast"; 
 import {
   FaCalendarDays,
   FaDollarSign,
