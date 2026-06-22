@@ -1,5 +1,6 @@
 "use client";
 
+import { getAuthHeaders } from "@/lib/jwt-token";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
@@ -51,6 +52,9 @@ export default function AllUsersPage() {
         `${baseUrl}/api/admin/users?status=${statusFilter}&page=${currentPage}&limit=${limit}`,
         {
           method: "GET",
+          headers: {
+            ...getAuthHeaders(),
+          },
           credentials: "include",
           cache: "no-store",
         }
@@ -115,6 +119,7 @@ export default function AllUsersPage() {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            ...getAuthHeaders(),
           },
           credentials: "include",
           body: JSON.stringify({
@@ -160,6 +165,7 @@ export default function AllUsersPage() {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            ...getAuthHeaders(),
           },
           credentials: "include",
           body: JSON.stringify({
@@ -264,11 +270,10 @@ export default function AllUsersPage() {
                 key={button.value}
                 type="button"
                 onClick={() => handleFilterChange(button.value)}
-                className={`rounded-xl px-4 py-2 text-sm font-black transition ${
-                  statusFilter === button.value
-                    ? "bg-red-600 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
-                }`}
+                className={`rounded-xl px-4 py-2 text-sm font-black transition ${statusFilter === button.value
+                  ? "bg-red-600 text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
+                  }`}
               >
                 {button.label}
               </button>
@@ -348,10 +353,9 @@ export default function AllUsersPage() {
 
                         <td className="px-5 py-4">
                           <span
-                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
-                              roleStyles[userRole] ||
+                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${roleStyles[userRole] ||
                               "border-slate-100 bg-slate-50 text-slate-600"
-                            }`}
+                              }`}
                           >
                             {userRole}
                           </span>
@@ -359,10 +363,9 @@ export default function AllUsersPage() {
 
                         <td className="px-5 py-4">
                           <span
-                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
-                              statusStyles[userStatus] ||
+                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${statusStyles[userStatus] ||
                               "border-slate-100 bg-slate-50 text-slate-600"
-                            }`}
+                              }`}
                           >
                             {userStatus}
                           </span>
@@ -481,11 +484,10 @@ export default function AllUsersPage() {
                       key={pageNumber}
                       type="button"
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black transition ${
-                        currentPage === pageNumber
-                          ? "bg-red-600 text-white"
-                          : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
-                      }`}
+                      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black transition ${currentPage === pageNumber
+                        ? "bg-red-600 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
+                        }`}
                     >
                       {pageNumber}
                     </button>
