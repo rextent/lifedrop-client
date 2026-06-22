@@ -16,6 +16,7 @@ import {
   FaRegMessage,
   FaUser,
 } from "react-icons/fa6";
+import { getAuthHeaders } from "@/lib/jwt-token";
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -75,6 +76,9 @@ export default function EditDonationRequestPage() {
           fetch("/upazilas.json"),
           fetch(`${apiBaseUrl}/api/auth/me`, {
             method: "GET",
+            headers: {
+              ...getAuthHeaders(),
+            },
             credentials: "include",
             cache: "no-store",
           }),
@@ -100,6 +104,9 @@ export default function EditDonationRequestPage() {
           )}`,
           {
             method: "GET",
+            headers: {
+              ...getAuthHeaders(),
+            },
             credentials: "include",
             cache: "no-store",
           }
@@ -275,6 +282,7 @@ export default function EditDonationRequestPage() {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            ...getAuthHeaders(),
           },
           credentials: "include",
           body: JSON.stringify(updatePayload),
@@ -509,11 +517,10 @@ export default function EditDonationRequestPage() {
                     key={group}
                     type="button"
                     onClick={() => updateField("bloodGroup", group)}
-                    className={`rounded-xl border py-2.5 text-sm font-black transition ${
-                      form.bloodGroup === group
-                        ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-100"
-                        : "border-red-100 bg-red-50 text-red-600 hover:bg-red-100"
-                    }`}
+                    className={`rounded-xl border py-2.5 text-sm font-black transition ${form.bloodGroup === group
+                      ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-100"
+                      : "border-red-100 bg-red-50 text-red-600 hover:bg-red-100"
+                      }`}
                   >
                     {group}
                   </button>
