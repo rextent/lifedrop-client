@@ -2,7 +2,7 @@
 
 import { getAuthHeaders } from "@/lib/jwt-token";
 import { useEffect, useState } from "react";
-import toast, { Toaster } from "react-hot-toast"; 
+import toast from "react-hot-toast";
 import {
   FaCalendarDays,
   FaDollarSign,
@@ -95,7 +95,7 @@ export default function FundingPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
-      <Toaster position="top-center" />
+      
 
       <section className="mx-auto max-w-7xl space-y-6">
         {/* Header */}

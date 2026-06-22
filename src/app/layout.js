@@ -2,7 +2,6 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Toaster } from "react-hot-toast";
 import GlobalToaster from "@/components/GlobalToaster";
 
 const poppins = Poppins({
@@ -25,11 +24,10 @@ export default function RootLayout({ children }) {
       <body
         className={`${poppins.className} min-h-screen bg-background text-foreground antialiased flex flex-col`}
       >
-        <Navbar/>
         <GlobalToaster />
+        <Navbar/>
         {children}
         <Footer/>
-        {/* <Toaster position="top-right" reverseOrder={false} /> */}
       </body>
     </html>
   );

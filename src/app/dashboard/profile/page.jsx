@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   FaCamera,
   FaCircleCheck,
@@ -317,7 +317,7 @@ export default function ProfilePage() {
 
   return (
     <section className="mx-auto max-w-[1050px] space-y-5">
-      <Toaster position="top-center" />
+      
 
       <form
         id="profile-form"

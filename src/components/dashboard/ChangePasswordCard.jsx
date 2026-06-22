@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   FaArrowRight,
   FaEye,
@@ -106,7 +106,7 @@ export default function ChangePasswordCard() {
 
   return (
     <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
-      <Toaster position="top-center" />
+      
 
       <div className="border-b border-slate-100 p-5">
         <p className="text-sm font-bold uppercase tracking-wide text-red-600">

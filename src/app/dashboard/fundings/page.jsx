@@ -2,7 +2,7 @@
 
 import { getAuthHeaders } from "@/lib/jwt-token";
 import { useEffect, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   FaAngleLeft,
   FaAngleRight,
@@ -172,7 +172,7 @@ export default function AdminFundingsPage() {
 
   return (
     <section className="space-y-6">
-      <Toaster position="top-center" />
+      
 
       {/* Header */}
       <div className="overflow-hidden rounded-3xl border border-red-100 bg-white shadow-sm">

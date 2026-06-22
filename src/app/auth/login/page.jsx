@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   FaArrowRight,
   FaDroplet,
@@ -99,7 +99,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 px-4 py-8">
-      <Toaster position="top-center" />
+      
 
       <section className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-[1100px] items-center justify-center">
         <div className="grid w-full overflow-hidden rounded-[28px] border border-red-100 bg-white shadow-2xl shadow-red-100/70 lg:grid-cols-[0.95fr_1.05fr]">

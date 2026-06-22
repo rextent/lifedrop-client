@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { FaDroplet, FaArrowRight } from "react-icons/fa6";
 
 export default function AuthShell({ mode = "signup", children }) {
@@ -9,7 +9,7 @@ export default function AuthShell({ mode = "signup", children }) {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 px-4 py-6 sm:px-6 lg:px-8">
-      <Toaster position="top-center" />
+      
 
       <section className="mx-auto flex min-h-[calc(100vh-48px)] w-full max-w-[1180px] items-center justify-center">
         <div className="grid w-full overflow-hidden rounded-[32px] border border-red-100 bg-white shadow-2xl shadow-red-100/70 lg:grid-cols-[1.08fr_0.92fr]">

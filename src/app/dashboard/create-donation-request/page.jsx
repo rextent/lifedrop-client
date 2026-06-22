@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
     FaCalendarDays,
     FaClock,
@@ -294,7 +294,7 @@ export default function CreateDonationRequestPage() {
 
     return (
         <section className="mx-auto max-w-[1050px] space-y-5">
-            <Toaster position="top-center" />
+            
 
             <div className="overflow-hidden rounded-[1.75rem] border border-slate-100 bg-white shadow-sm">
                 <div className="bg-gradient-to-br from-red-600 to-rose-700 px-5 py-6 text-white">
