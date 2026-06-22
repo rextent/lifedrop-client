@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
-import { FaCircleCheck, FaArrowRight } from "react-icons/fa6";
+import { FaArrowRight, FaCircleCheck } from "react-icons/fa6";
 
-export default function FundingSuccessPage() {
+function FundingSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
 
@@ -80,5 +80,23 @@ export default function FundingSuccessPage() {
         </Link>
       </div>
     </main>
+  );
+}
+
+export default function FundingSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+          <div className="w-full max-w-xl rounded-3xl border border-slate-100 bg-white p-8 text-center shadow-sm">
+            <p className="text-sm font-bold text-slate-500">
+              Loading payment details...
+            </p>
+          </div>
+        </main>
+      }
+    >
+      <FundingSuccessContent />
+    </Suspense>
   );
 }
