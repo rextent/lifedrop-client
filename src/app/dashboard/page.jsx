@@ -13,6 +13,9 @@ import {
   FaPenToSquare,
   FaUser,
   FaXmark,
+  FaUsers,
+  FaHandshake,
+  FaDollarSign,
 } from "react-icons/fa6";
 
 const statusStyles = {
@@ -22,34 +25,128 @@ const statusStyles = {
   canceled: "bg-red-50 text-red-700 border-red-100",
 };
 
+const roleContent = {
+  admin: {
+    badge: "Admin Dashboard",
+    fallbackName: "Admin",
+    description:
+      "Monitor platform activity, manage users, review donation requests, and keep LifeDrop operations organized.",
+  },
+  volunteer: {
+    badge: "Volunteer Dashboard",
+    fallbackName: "Volunteer",
+    description:
+      "Review public donation requests, update donation status, and help people find support faster.",
+  },
+  donor: {
+    badge: "Donor Dashboard",
+    fallbackName: "Donor",
+    description:
+      "Manage your blood donation requests, track status updates, and help people find support faster.",
+  },
+};
+
 export default function DashboardHomePage() {
   const { data: session, isPending } = authClient.useSession();
-  const user = session?.user;
+  const sessionUser = session?.user;
 
+  const [currentUser, setCurrentUser] = useState(null);
+  const [stats, setStats] = useState(null);
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const [userLoading, setUserLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [requestsLoading, setRequestsLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState("");
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+  const role = currentUser?.role || sessionUser?.role || "donor";
+  const roleInfo = roleContent[role] || roleContent.donor;
+
+  const userName =
+    currentUser?.name || sessionUser?.name || roleInfo.fallbackName;
+
+  const userEmail = currentUser?.email || sessionUser?.email || "";
+
   useEffect(() => {
-    if (!user?.email) {
+    if (isPending) return;
+
+    if (!sessionUser?.email) {
+      setCurrentUser(null);
+      setUserLoading(false);
+      setStatsLoading(false);
+      return;
+    }
+
+    const loadCurrentUserAndStats = async () => {
+      try {
+        setUserLoading(true);
+        setStatsLoading(true);
+
+        const meResponse = await fetch(`${baseUrl}/api/auth/me`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        const meData = await meResponse.json();
+
+        if (!meResponse.ok || !meData?.success) {
+          throw new Error(meData?.message || "Failed to load current user.");
+        }
+
+        setCurrentUser(meData.user);
+
+        const statsResponse = await fetch(`${baseUrl}/api/dashboard/stats`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        const statsData = await statsResponse.json();
+
+        if (!statsResponse.ok || !statsData?.success) {
+          throw new Error(
+            statsData?.message || "Failed to load dashboard statistics."
+          );
+        }
+
+        setStats(statsData.stats || null);
+      } catch (error) {
+        console.error("DASHBOARD_USER_STATS_ERROR:", error);
+        setCurrentUser(sessionUser || null);
+        setStats(null);
+      } finally {
+        setUserLoading(false);
+        setStatsLoading(false);
+      }
+    };
+
+    loadCurrentUserAndStats();
+  }, [isPending, sessionUser?.email, baseUrl]);
+
+  useEffect(() => {
+    if (isPending || userLoading) return;
+
+    if (!userEmail) {
       setRequests([]);
-      setLoading(false);
+      setRequestsLoading(false);
       return;
     }
 
     const loadRecentRequests = async () => {
       try {
-        setLoading(true);
-
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+        setRequestsLoading(true);
 
         const response = await fetch(
           `${baseUrl}/api/donationRequests/my?email=${encodeURIComponent(
-            user.email
+            userEmail
           )}&status=all&page=1&limit=3`,
           {
             method: "GET",
             cache: "no-store",
+            credentials: "include",
           }
         );
 
@@ -64,12 +161,12 @@ export default function DashboardHomePage() {
         console.error("RECENT_REQUESTS_ERROR:", error);
         setRequests([]);
       } finally {
-        setLoading(false);
+        setRequestsLoading(false);
       }
     };
 
     loadRecentRequests();
-  }, [user?.email]);
+  }, [isPending, userLoading, userEmail, baseUrl]);
 
   const handleCancelRequest = async (requestId) => {
     const confirmed = window.confirm(
@@ -81,8 +178,6 @@ export default function DashboardHomePage() {
     try {
       setActionLoadingId(requestId);
 
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-
       const response = await fetch(
         `${baseUrl}/api/donationRequests/${requestId}/status`,
         {
@@ -90,7 +185,11 @@ export default function DashboardHomePage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ status: "canceled" }),
+          credentials: "include",
+          body: JSON.stringify({
+            status: "canceled",
+            requesterEmail: userEmail,
+          }),
         }
       );
 
@@ -104,10 +203,10 @@ export default function DashboardHomePage() {
         prev.map((request) =>
           request._id === requestId || request.id === requestId
             ? {
-              ...request,
-              donationStatus: "canceled",
-              status: "canceled",
-            }
+                ...request,
+                donationStatus: "canceled",
+                status: "canceled",
+              }
             : request
         )
       );
@@ -120,7 +219,84 @@ export default function DashboardHomePage() {
     }
   };
 
-  if (isPending) {
+  const getStatCards = () => {
+    if (role === "admin") {
+      return [
+        {
+          title: "Total Donation Requests",
+          count: stats?.totalDonationRequests || 0,
+          icon: FaDroplet,
+        },
+        {
+          title: "Total Donors",
+          count: stats?.totalDonors || 0,
+          icon: FaUsers,
+        },
+        {
+          title: "Total Volunteers",
+          count: stats?.totalVolunteers || 0,
+          icon: FaHandshake,
+        },
+        {
+          title: "Total Funding",
+          count: `$${stats?.totalFunding || 0}`,
+          icon: FaDollarSign,
+        },
+      ];
+    }
+
+    if (role === "volunteer") {
+      return [
+        {
+          title: "Total Public Requests",
+          count: stats?.totalPublicRequests || 0,
+          icon: FaDroplet,
+        },
+        {
+          title: "Pending Requests",
+          count: stats?.pendingRequests || 0,
+          icon: FaClock,
+        },
+        {
+          title: "In Progress Requests",
+          count: stats?.inProgressRequests || 0,
+          icon: FaHandshake,
+        },
+        {
+          title: "Completed Requests",
+          count: stats?.completedRequests || 0,
+          icon: FaUsers,
+        },
+      ];
+    }
+
+    return [
+      {
+        title: "My Total Requests",
+        count: stats?.myTotalRequests || 0,
+        icon: FaDroplet,
+      },
+      {
+        title: "My Pending Requests",
+        count: stats?.myPendingRequests || 0,
+        icon: FaClock,
+      },
+      {
+        title: "My In Progress Requests",
+        count: stats?.myInProgressRequests || 0,
+        icon: FaHandshake,
+      },
+      {
+        title: "My Completed Requests",
+        count: stats?.myCompletedRequests || 0,
+        icon: FaUsers,
+      },
+    ];
+  };
+
+  const statCards = getStatCards();
+
+  if (isPending || userLoading) {
     return (
       <section className="space-y-6">
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
@@ -143,23 +319,87 @@ export default function DashboardHomePage() {
           <div className="relative z-10">
             <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">
               <FaDroplet />
-              Donor Dashboard
+              {roleInfo.badge}
             </p>
 
             <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-              Welcome, {user?.name || "Donor"}!
+              Welcome, {userName}!
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm leading-6 text-red-50 sm:text-base">
-              Manage your blood donation requests, track status updates, and
-              help people find support faster.
+              {roleInfo.description}
             </p>
           </div>
         </div>
       </div>
 
+      {/* Role Based Statistics */}
+      <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-5">
+          <p className="text-sm font-bold uppercase tracking-wide text-red-600">
+            Dashboard Overview
+          </p>
+
+          <h2 className="mt-1 text-2xl font-black text-slate-950">
+            {role === "admin"
+              ? "Platform Statistics"
+              : role === "volunteer"
+              ? "Request Statistics"
+              : "My Request Statistics"}
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            {role === "admin"
+              ? "Quick overview of LifeDrop platform activity."
+              : role === "volunteer"
+              ? "Overview of public donation request activity."
+              : "Overview of your own donation request activity."}
+          </p>
+        </div>
+
+        {statsLoading ? (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="h-28 animate-pulse rounded-2xl bg-slate-100"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {statCards.map((card) => {
+              const Icon = card.icon;
+
+              return (
+                <div
+                  key={card.title}
+                  className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5 transition hover:-translate-y-1 hover:bg-white hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-slate-500">
+                        {card.title}
+                      </p>
+
+                      <h3 className="mt-3 text-3xl font-black text-slate-950">
+                        {card.count}
+                      </h3>
+                    </div>
+
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                      <Icon size={22} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Recent Donation Requests - hidden if no request */}
-      {!loading && requests.length > 0 && (
+      {!requestsLoading && requests.length > 0 && (
         <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -264,9 +504,10 @@ export default function DashboardHomePage() {
 
                       <td className="px-5 py-4">
                         <span
-                          className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${statusStyles[status] ||
+                          className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-black capitalize ${
+                            statusStyles[status] ||
                             "border-slate-100 bg-slate-50 text-slate-600"
-                            }`}
+                          }`}
                         >
                           {status}
                         </span>
@@ -332,7 +573,7 @@ export default function DashboardHomePage() {
       )}
 
       {/* Loading recent requests */}
-      {loading && (
+      {requestsLoading && (
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           <p className="text-sm font-bold text-slate-500">
             Loading recent donation requests...
