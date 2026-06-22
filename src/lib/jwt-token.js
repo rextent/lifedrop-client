@@ -1,53 +1,58 @@
 const TOKEN_KEY = "lifedrop_access_token";
 
 export const saveAccessToken = (token) => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(TOKEN_KEY, token);
+  if (typeof window === "undefined") return;
+  localStorage.setItem(TOKEN_KEY, token);
 };
 
 export const getAccessToken = () => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem(TOKEN_KEY) || "";
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem(TOKEN_KEY) || "";
 };
 
 export const removeAccessToken = () => {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(TOKEN_KEY);
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(TOKEN_KEY);
 };
 
 export const getAuthHeaders = () => {
-    const token = getAccessToken();
+  const token = getAccessToken();
 
-    if (!token) {
-        return {};
-    }
+  if (!token) {
+    return {};
+  }
 
-    return {
-        Authorization: `Bearer ${token}`,
-    };
+  return {
+    Authorization: `Bearer ${token}`,
+  };
 };
 
 export const createJwtToken = async (email) => {
-    const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
-    const response = await fetch(`${baseUrl}/api/jwt`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            email,
-        }),
-    });
+  // New login/signup শুরু হওয়ার আগে পুরোনো token অবশ্যই clear হবে
+  removeAccessToken();
 
-    const data = await response.json();
+  const response = await fetch(`${baseUrl}/api/jwt`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      email,
+    }),
+  });
 
-    if (!response.ok || !data?.success) {
-        throw new Error(data?.message || "Failed to create JWT token.");
-    }
+  const data = await response.json();
 
-    saveAccessToken(data.token);
+  if (!response.ok || !data?.success || !data?.token) {
+    removeAccessToken();
+    throw new Error(data?.message || "Failed to create JWT token.");
+  }
 
-    return data;
+  saveAccessToken(data.token);
+
+  return data;
 };

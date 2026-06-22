@@ -57,13 +57,38 @@ export default function DashboardSidebar({ children }) {
         const data = await response.json();
 
         if (!response.ok || !data?.success) {
+          removeAccessToken();
+          await authClient.signOut().catch(() => { });
+          router.push("/auth/login");
           throw new Error(data?.message || "Failed to load current user.");
         }
 
-        setCurrentUser(data.user);
+        const dbUser = data.user;
+
+        const sessionEmail = sessionUser?.email?.toLowerCase();
+        const tokenUserEmail = dbUser?.email?.toLowerCase();
+
+        // পুরোনো admin token + নতুন user session mismatch হলে force logout
+        if (sessionEmail && tokenUserEmail && sessionEmail !== tokenUserEmail) {
+          removeAccessToken();
+          await authClient.signOut().catch(() => { });
+          setCurrentUser(null);
+          router.push("/auth/login");
+          throw new Error("Session mismatch detected. Please login again.");
+        }
+
+        if (dbUser?.status === "blocked") {
+          removeAccessToken();
+          await authClient.signOut().catch(() => { });
+          setCurrentUser(null);
+          router.push("/auth/login");
+          throw new Error("Blocked users cannot access dashboard.");
+        }
+
+        setCurrentUser(dbUser);
       } catch (error) {
         console.error("SIDEBAR_CURRENT_USER_ERROR:", error);
-        setCurrentUser(sessionUser || null);
+        setCurrentUser(null);
       } finally {
         setLoadingUser(false);
       }

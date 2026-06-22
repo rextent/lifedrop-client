@@ -14,7 +14,7 @@ import {
   FaLock,
   FaRightToBracket,
 } from "react-icons/fa6";
-import { createJwtToken } from "@/lib/jwt-token";
+import { createJwtToken, removeAccessToken } from "@/lib/jwt-token";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -57,6 +57,12 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
+      // পুরোনো admin/user token আগে clear
+      removeAccessToken();
+
+      // পুরোনো Better Auth session থাকলেও clear করার চেষ্টা
+      await authClient.signOut().catch(() => { });
+
       const userEmail = form.email.trim().toLowerCase();
 
       const result = await authClient.signIn.email({
@@ -67,6 +73,8 @@ export default function LoginPage() {
       console.log("LOGIN_RESULT:", result);
 
       if (result?.error) {
+        removeAccessToken();
+
         const errorMessage =
           result.error.message ||
           result.error.statusText ||
@@ -77,15 +85,30 @@ export default function LoginPage() {
         return;
       }
 
-      await createJwtToken(userEmail);
+      try {
+        await createJwtToken(userEmail);
+      } catch (tokenError) {
+        // Better Auth login successful হলেও JWT fail করলে logged-in রাখা যাবে না
+        removeAccessToken();
+        await authClient.signOut().catch(() => { });
+
+        toast.error(
+          tokenError?.message ||
+          "You are not allowed to login. Please contact admin."
+        );
+
+        router.refresh();
+        return;
+      }
 
       toast.success("Login successful.");
-
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
-      console.error("LOGIN_ERROR:", error);
+      removeAccessToken();
+      await authClient.signOut().catch(() => { });
 
+      console.error("LOGIN_ERROR:", error);
       toast.error(error?.message || "Something went wrong.");
     } finally {
       setLoading(false);
@@ -99,7 +122,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 px-4 py-8">
-      
+
 
       <section className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-[1100px] items-center justify-center">
         <div className="grid w-full overflow-hidden rounded-[28px] border border-red-100 bg-white shadow-2xl shadow-red-100/70 lg:grid-cols-[0.95fr_1.05fr]">
