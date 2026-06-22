@@ -14,6 +14,7 @@ import {
   FaLock,
   FaRightToBracket,
 } from "react-icons/fa6";
+import { createJwtToken } from "@/lib/jwt-token";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -72,6 +73,8 @@ export default function LoginPage() {
         toast.error(errorMessage);
         return;
       }
+
+      await createJwtToken(email);
 
       toast.success("Login successful.");
 
