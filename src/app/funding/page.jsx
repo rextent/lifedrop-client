@@ -25,6 +25,9 @@ export default function FundingPage() {
 
       const response = await fetch(`${baseUrl}/api/fundings`, {
         method: "GET",
+        headers: {
+          ...getAuthHeaders(),
+        },
         credentials: "include",
         cache: "no-store",
       });
@@ -66,6 +69,7 @@ export default function FundingPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...getAuthHeaders(),
         },
         credentials: "include",
         body: JSON.stringify({
