@@ -16,6 +16,7 @@ import {
   FaUser,
   FaXmark,
 } from "react-icons/fa6";
+import { getAuthHeaders } from "@/lib/jwt-token";
 
 const statusStyles = {
   pending: "bg-amber-50 text-amber-700 border-amber-100",
@@ -54,12 +55,17 @@ export default function DonationRequestDetailsPage() {
       try {
         setLoading(true);
 
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+        const baseUrl =
+          process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
         const response = await fetch(
           `${baseUrl}/api/donationRequests/details/${requestId}`,
           {
             method: "GET",
+            headers: {
+              ...getAuthHeaders(),
+            },
+            credentials: "include",
             cache: "no-store",
           }
         );
@@ -94,7 +100,8 @@ export default function DonationRequestDetailsPage() {
     try {
       setConfirmLoading(true);
 
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
       const response = await fetch(
         `${baseUrl}/api/donationRequests/${requestId}/donate`,
@@ -102,7 +109,9 @@ export default function DonationRequestDetailsPage() {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            ...getAuthHeaders(),
           },
+          credentials: "include",
           body: JSON.stringify({
             donorName: user.name,
             donorEmail: user.email,
@@ -159,7 +168,7 @@ export default function DonationRequestDetailsPage() {
 
             <button
               type="button"
-              onClick={() => router.push("/donation-requests")}
+              onClick={() => router.push("/dashboard/all-blood-donation-request")}
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700"
             >
               <FaArrowLeft />
@@ -215,10 +224,9 @@ export default function DonationRequestDetailsPage() {
                 </span>
 
                 <span
-                  className={`inline-flex rounded-full border px-4 py-2 text-sm font-black capitalize ${
-                    statusStyles[status] ||
+                  className={`inline-flex rounded-full border px-4 py-2 text-sm font-black capitalize ${statusStyles[status] ||
                     "border-slate-100 bg-slate-50 text-slate-600"
-                  }`}
+                    }`}
                 >
                   {status}
                 </span>
