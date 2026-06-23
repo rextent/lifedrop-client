@@ -469,7 +469,7 @@ export default function AdminFundingsPage() {
                       key={pageNumber}
                       type="button"
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black transition ${currentPage === pageNumber
+                      className={`inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-sm font-black transition ${currentPage === pageNumber
                         ? "bg-red-600 text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
                         }`}

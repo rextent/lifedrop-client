@@ -329,7 +329,7 @@ export default function AllBloodDonationRequestPage() {
                 key={button.value}
                 type="button"
                 onClick={() => handleFilterChange(button.value)}
-                className={`rounded-xl px-4 py-2 text-sm font-black transition ${statusFilter === button.value
+                className={`cursor-pointer rounded-xl px-4 py-2 text-sm font-black transition ${statusFilter === button.value
                   ? "bg-red-600 text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
                   }`}
@@ -472,7 +472,7 @@ export default function AllBloodDonationRequestPage() {
                           <div className="relative flex items-center justify-end gap-2">
                             <Link
                               href={`/dashboard/donation-requests/${requestId}`}
-                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white"
+                              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white"
                               title="View"
                             >
                               <FaEye />
@@ -481,7 +481,7 @@ export default function AllBloodDonationRequestPage() {
                             {role === "admin" && status === "pending" && (
                               <Link
                                 href={`/dashboard/edit-donation-request/${requestId}`}
-                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-800 hover:text-white"
+                                className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-800 hover:text-white"
                                 title="Edit"
                               >
                                 <FaPenToSquare />
