@@ -75,7 +75,7 @@ const roleContent = {
     badge: "Volunteer Dashboard",
     fallbackName: "Volunteer",
     description:
-      "Monitor platform activity, review donation requests, and help keep LifeDrop operations organized.",
+      "Review platform activity and manage your own donation request activity.",
   },
   donor: {
     badge: "Donor Dashboard",
@@ -87,7 +87,6 @@ const roleContent = {
 
 const formatDate = (dateValue) => {
   if (!dateValue) return "N/A";
-
   return new Date(dateValue).toLocaleDateString();
 };
 
@@ -114,7 +113,11 @@ export default function DashboardHomePage() {
 
   const role = currentUser?.role || sessionUser?.role || "donor";
   const roleInfo = roleContent[role] || roleContent.donor;
-  const isPlatformDashboard = role === "admin" || role === "volunteer";
+
+  const isAdminDashboard = role === "admin";
+  const isVolunteerDashboard = role === "volunteer";
+  const isPlatformStatsDashboard = role === "admin" || role === "volunteer";
+  const showOwnRecentRequests = role !== "admin";
 
   const activeChartInfo =
     chartTabs.find((tab) => tab.key === activeChartTab) || chartTabs[0];
@@ -201,7 +204,7 @@ export default function DashboardHomePage() {
   useEffect(() => {
     if (isPending || userLoading) return;
 
-    if (isPlatformDashboard) {
+    if (!showOwnRecentRequests) {
       setRequests([]);
       setRequestsLoading(false);
       return;
@@ -247,7 +250,13 @@ export default function DashboardHomePage() {
     };
 
     loadRecentRequests();
-  }, [isPending, userLoading, userEmail, baseUrl, isPlatformDashboard]);
+  }, [
+    isPending,
+    userLoading,
+    userEmail,
+    baseUrl,
+    showOwnRecentRequests,
+  ]);
 
   const handleCancelRequest = async (requestId) => {
     const confirmed = window.confirm(
@@ -302,7 +311,7 @@ export default function DashboardHomePage() {
   };
 
   const getStatCards = () => {
-    if (isPlatformDashboard) {
+    if (isPlatformStatsDashboard) {
       return [
         {
           title: "Total Donation Requests",
@@ -398,13 +407,13 @@ export default function DashboardHomePage() {
           </p>
 
           <h2 className="mt-1 text-2xl font-black text-slate-950">
-            {isPlatformDashboard
+            {isPlatformStatsDashboard
               ? "Platform Statistics"
               : "My Request Statistics"}
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            {isPlatformDashboard
+            {isPlatformStatsDashboard
               ? "Quick overview of LifeDrop platform activity."
               : "Overview of your own donation request activity."}
           </p>
@@ -451,8 +460,8 @@ export default function DashboardHomePage() {
         )}
       </div>
 
-      {/* Donation Request Chart - Admin/Volunteer */}
-      {isPlatformDashboard && (
+      {/* Donation Request Chart - Admin Only */}
+      {isAdminDashboard && (
         <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
           <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -603,8 +612,8 @@ export default function DashboardHomePage() {
         </div>
       )}
 
-      {/* Admin/Volunteer Latest 3 Donation Requests */}
-      {isPlatformDashboard && (
+      {/* Admin Latest 3 Donation Requests - All Users */}
+      {isAdminDashboard && (
         <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -770,8 +779,8 @@ export default function DashboardHomePage() {
         </div>
       )}
 
-      {/* Admin/Volunteer Latest 3 Funding History */}
-      {isPlatformDashboard && (
+      {/* Admin Latest 3 Funding History */}
+      {isAdminDashboard && (
         <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -789,10 +798,10 @@ export default function DashboardHomePage() {
             </div>
 
             <Link
-              href={role === "admin" ? "/dashboard/fundings" : "/funding"}
+              href="/dashboard/fundings"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-black text-white transition hover:bg-red-700"
             >
-              {role === "admin" ? "View All Fundings" : "Go to Funding"}
+              View All Fundings
               <FaArrowRight />
             </Link>
           </div>
@@ -886,8 +895,8 @@ export default function DashboardHomePage() {
         </div>
       )}
 
-      {/* Recent Donation Requests - Donor */}
-      {!isPlatformDashboard && !requestsLoading && requests.length > 0 && (
+      {/* Own Recent Donation Requests - Donor/Volunteer */}
+      {showOwnRecentRequests && !requestsLoading && requests.length > 0 && (
         <div className="rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -1060,8 +1069,8 @@ export default function DashboardHomePage() {
         </div>
       )}
 
-      {/* Loading recent requests for donor */}
-      {!isPlatformDashboard && requestsLoading && (
+      {/* Loading own recent requests - Donor/Volunteer */}
+      {showOwnRecentRequests && requestsLoading && (
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           <p className="text-sm font-bold text-slate-500">
             Loading recent donation requests...

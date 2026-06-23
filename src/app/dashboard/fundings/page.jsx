@@ -172,74 +172,75 @@ export default function AdminFundingsPage() {
 
   return (
     <section className="space-y-6">
-      
 
-      {/* Header */}
+
+      {/* Header With Summary */}
       <div className="overflow-hidden rounded-3xl border border-red-100 bg-white shadow-sm">
         <div className="relative bg-gradient-to-br from-red-600 to-rose-700 p-6 text-white sm:p-8">
           <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
 
-          <div className="relative z-10">
-            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">
-              <FaMoneyBillWave />
-              Admin Funding Management
-            </p>
-
-            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-              Funding Records
-            </h1>
-
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-red-50 sm:text-base">
-              Track all organization funding records, filter transactions and
-              monitor total funding amount.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
+          <div className="relative z-10 grid gap-6 xl:grid-cols-[1.2fr_0.8fr] xl:items-center">
             <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-red-600">
-                Total Funding
+              <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">
+                <FaMoneyBillWave />
+                Admin Funding Management
               </p>
 
-              <h2 className="mt-2 text-3xl font-black text-slate-950">
-                ${summary.totalFunding}
-              </h2>
+              <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+                Funding Records
+              </h1>
 
-              <p className="mt-1 text-sm text-slate-500">
-                Total paid funding from all users.
-              </p>
-            </div>
-
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
-              <FaDollarSign size={24} />
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-red-600">
-                Filtered Total
-              </p>
-
-              <h2 className="mt-2 text-3xl font-black text-slate-950">
-                ${summary.filteredFunding}
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Total funding based on current filters.
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-red-50 sm:text-base">
+                Track all organization funding records, filter transactions and
+                monitor total funding amount.
               </p>
             </div>
 
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
-              <FaMoneyBillWave size={24} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-red-100">
+                      Total Funding
+                    </p>
+
+                    <h2 className="mt-2 text-3xl font-black text-white">
+                      ${summary.totalFunding}
+                    </h2>
+
+                    <p className="mt-1 text-xs font-semibold text-red-50">
+                      Total paid funding from all users.
+                    </p>
+                  </div>
+
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white">
+                    <FaDollarSign size={22} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-red-100">
+                      Filtered Total
+                    </p>
+
+                    <h2 className="mt-2 text-3xl font-black text-white">
+                      ${summary.filteredFunding}
+                    </h2>
+
+                    <p className="mt-1 text-xs font-semibold text-red-50">
+                      Total funding based on current filters.
+                    </p>
+                  </div>
+
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white">
+                    <FaMoneyBillWave size={22} />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -270,8 +271,8 @@ export default function AdminFundingsPage() {
                   type="button"
                   onClick={() => handleStatusChange(button.value)}
                   className={`rounded-xl px-4 py-2 text-sm font-black transition ${statusFilter === button.value
-                      ? "bg-red-600 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
+                    ? "bg-red-600 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
                     }`}
                 >
                   {button.label}
@@ -469,8 +470,8 @@ export default function AdminFundingsPage() {
                       type="button"
                       onClick={() => setCurrentPage(pageNumber)}
                       className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black transition ${currentPage === pageNumber
-                          ? "bg-red-600 text-white"
-                          : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
+                        ? "bg-red-600 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
                         }`}
                     >
                       {pageNumber}

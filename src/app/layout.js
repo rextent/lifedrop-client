@@ -11,8 +11,11 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "Blood Donation Platform",
+  title: "LifeDrop - Blood Donation Platform",
   description: "A platform to connect blood donors with recipients",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }) {
