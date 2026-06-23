@@ -218,7 +218,7 @@ export default function ChangePasswordCard() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-black text-white shadow-lg shadow-red-100 transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-black text-white shadow-lg shadow-red-100 transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Updating Password..." : "Update Password"}
             {!loading && <FaArrowRight />}

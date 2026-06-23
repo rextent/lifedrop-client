@@ -485,7 +485,7 @@ export default function DashboardHomePage() {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveChartTab(tab.key)}
-                  className={`rounded-xl px-4 py-2 text-sm font-black transition ${
+                  className={`rounded-xl px-4 py-2 cursor-pointer text-sm font-black transition ${
                     activeChartTab === tab.key
                       ? "bg-red-600 text-white shadow-sm"
                       : "text-slate-600 hover:bg-white hover:text-red-600"

@@ -339,7 +339,7 @@ export default function DashboardSidebar({ children }) {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-red-600 transition hover:bg-red-50"
+              className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-red-600 transition hover:bg-red-50"
             >
               <FaRightFromBracket />
               Logout
