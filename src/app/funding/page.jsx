@@ -140,7 +140,7 @@ export default function FundingPage() {
                     type="button"
                     disabled={paymentLoading}
                     onClick={handleGiveFund}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-black text-red-600 shadow-lg shadow-red-900/10 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-black text-red-600 shadow-lg shadow-red-900/10 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <FaMoneyBillWave />
                     {paymentLoading ? "Processing..." : "Give Fund"}

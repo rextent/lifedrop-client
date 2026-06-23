@@ -402,7 +402,7 @@ export default function PublicDonationRequestsPage() {
             <div className="flex gap-3 md:items-end">
               <button
                 type="submit"
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700"
+                className="cursor-pointer inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700"
               >
                 <FaMagnifyingGlass />
                 Filter
@@ -411,7 +411,7 @@ export default function PublicDonationRequestsPage() {
               <button
                 type="button"
                 onClick={handleResetFilter}
-                className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-200"
+                className="cursor-pointer inline-flex items-center justify-center rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-200"
                 title="Reset Filter"
               >
                 <FaRotateRight />
@@ -542,7 +542,7 @@ export default function PublicDonationRequestsPage() {
                       type="button"
                       onClick={() => handleViewRequest(requestId)}
                       disabled={isPending}
-                      className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="mt-5 cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <FaEye />
                       View Details
@@ -563,7 +563,7 @@ export default function PublicDonationRequestsPage() {
                     type="button"
                     onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                     disabled={currentPage <= 1 || loading}
-                    className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="cursor-pointer rounded-2xl bg-slate-100 px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Previous
                   </button>
@@ -579,7 +579,7 @@ export default function PublicDonationRequestsPage() {
                         type="button"
                         onClick={() => handlePageChange(pageNumber)}
                         disabled={loading}
-                        className={`h-10 w-10 rounded-2xl text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                        className={`h-10 w-10 cursor-pointer rounded-2xl text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50 ${
                           currentPage === pageNumber
                             ? "bg-red-600 text-white"
                             : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -595,7 +595,7 @@ export default function PublicDonationRequestsPage() {
                       handlePageChange(Math.min(currentPage + 1, totalPages))
                     }
                     disabled={currentPage >= totalPages || loading}
-                    className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="cursor-pointer rounded-2xl bg-slate-100 px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next
                   </button>

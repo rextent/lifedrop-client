@@ -466,7 +466,7 @@ export default function SearchDonorsPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <FaMagnifyingGlass />
                 {loading ? "Searching..." : "Search"}
@@ -475,7 +475,7 @@ export default function SearchDonorsPage() {
               <button
                 type="button"
                 onClick={handleResetFilter}
-                className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-200"
+                className="cursor-pointer inline-flex items-center justify-center rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-200"
                 title="Reset Filter"
               >
                 <FaRotateRight />
