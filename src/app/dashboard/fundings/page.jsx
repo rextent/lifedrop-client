@@ -270,7 +270,7 @@ export default function AdminFundingsPage() {
                   key={button.value}
                   type="button"
                   onClick={() => handleStatusChange(button.value)}
-                  className={`rounded-xl px-4 py-2 text-sm font-black transition ${statusFilter === button.value
+                  className={`cursor-pointer rounded-xl px-4 py-2 text-sm font-black transition ${statusFilter === button.value
                     ? "bg-red-600 text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
                     }`}
@@ -337,7 +337,7 @@ export default function AdminFundingsPage() {
 
               <button
                 type="submit"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-black text-white transition hover:bg-red-700"
+                className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-black text-white transition hover:bg-red-700"
               >
                 <FaMagnifyingGlass />
                 Search
@@ -346,7 +346,7 @@ export default function AdminFundingsPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-black text-slate-600 ring-1 ring-slate-200 transition hover:bg-red-50 hover:text-red-600"
+                className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-black text-slate-600 ring-1 ring-slate-200 transition hover:bg-red-50 hover:text-red-600"
               >
                 <FaRotateRight />
                 Reset
@@ -458,7 +458,7 @@ export default function AdminFundingsPage() {
                     type="button"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((prev) => prev - 1)}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <FaAngleLeft />
                     Prev
@@ -482,7 +482,7 @@ export default function AdminFundingsPage() {
                     type="button"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((prev) => prev + 1)}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next
                     <FaAngleRight />
