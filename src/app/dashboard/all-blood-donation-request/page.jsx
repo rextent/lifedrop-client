@@ -494,7 +494,7 @@ export default function AllBloodDonationRequestPage() {
                               onClick={() =>
                                 setOpenMenuId(isMenuOpen ? "" : requestId)
                               }
-                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                               title="Update status"
                             >
                               <FaEllipsisVertical />
@@ -517,7 +517,7 @@ export default function AllBloodDonationRequestPage() {
                                     onClick={() =>
                                       handleStatusChange(request, option.value)
                                     }
-                                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${option.value === status
+                                    className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${option.value === status
                                       ? "bg-slate-50 text-slate-400"
                                       : "text-slate-700 hover:bg-red-50 hover:text-red-600"
                                       }`}
@@ -551,7 +551,7 @@ export default function AllBloodDonationRequestPage() {
                     type="button"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((prev) => prev - 1)}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <FaAngleLeft />
                     Prev
@@ -562,7 +562,7 @@ export default function AllBloodDonationRequestPage() {
                       key={pageNumber}
                       type="button"
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black transition ${currentPage === pageNumber
+                      className={`inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-sm font-black transition ${currentPage === pageNumber
                         ? "bg-red-600 text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
                         }`}
@@ -575,7 +575,7 @@ export default function AllBloodDonationRequestPage() {
                     type="button"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((prev) => prev + 1)}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next
                     <FaAngleRight />
