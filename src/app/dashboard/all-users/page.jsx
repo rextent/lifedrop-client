@@ -270,7 +270,7 @@ export default function AllUsersPage() {
                 key={button.value}
                 type="button"
                 onClick={() => handleFilterChange(button.value)}
-                className={`rounded-xl px-4 py-2 text-sm font-black transition ${statusFilter === button.value
+                className={`cursor-pointer rounded-xl px-4 py-2 text-sm font-black transition ${statusFilter === button.value
                   ? "bg-red-600 text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
                   }`}
@@ -379,7 +379,7 @@ export default function AllUsersPage() {
                               onClick={() =>
                                 setOpenMenuId(isMenuOpen ? "" : user._id)
                               }
-                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                               title="Manage user"
                             >
                               <FaEllipsisVertical />
@@ -394,7 +394,7 @@ export default function AllUsersPage() {
                                     onClick={() =>
                                       handleStatusChange(user, "blocked")
                                     }
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                                   >
                                     <FaBan />
                                     Block User
@@ -406,7 +406,7 @@ export default function AllUsersPage() {
                                     onClick={() =>
                                       handleStatusChange(user, "active")
                                     }
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
                                   >
                                     <FaUnlock />
                                     Unblock User
@@ -420,7 +420,7 @@ export default function AllUsersPage() {
                                     onClick={() =>
                                       handleRoleChange(user, "volunteer")
                                     }
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-blue-600 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-blue-600 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
                                   >
                                     <FaHandshake />
                                     Make Volunteer
@@ -434,7 +434,7 @@ export default function AllUsersPage() {
                                     onClick={() =>
                                       handleRoleChange(user, "admin")
                                     }
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-purple-600 transition hover:bg-purple-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-purple-600 transition hover:bg-purple-50 disabled:cursor-not-allowed disabled:opacity-60"
                                   >
                                     <FaUserShield />
                                     Make Admin
@@ -473,7 +473,7 @@ export default function AllUsersPage() {
                     type="button"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((prev) => prev - 1)}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <FaAngleLeft />
                     Prev
@@ -484,7 +484,7 @@ export default function AllUsersPage() {
                       key={pageNumber}
                       type="button"
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black transition ${currentPage === pageNumber
+                      className={`inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-sm font-black transition ${currentPage === pageNumber
                         ? "bg-red-600 text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
                         }`}
@@ -497,7 +497,7 @@ export default function AllUsersPage() {
                     type="button"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((prev) => prev + 1)}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-black text-slate-600 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next
                     <FaAngleRight />
