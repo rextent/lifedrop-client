@@ -336,7 +336,7 @@ export default function MyDonationRequestsPage() {
                                 key={tab.value}
                                 type="button"
                                 onClick={() => handleFilterChange(tab.value)}
-                                className={`rounded-xl border px-4 py-2 text-sm font-black transition ${
+                                className={`cursor-pointer rounded-xl border px-4 py-2 text-sm font-black transition ${
                                     status === tab.value
                                         ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-100"
                                         : "border-slate-200 bg-slate-50 text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
@@ -371,7 +371,7 @@ export default function MyDonationRequestsPage() {
 
                             <Link
                                 href="/dashboard/create-donation-request"
-                                className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-red-600 px-5 text-sm font-black text-white transition hover:bg-red-700"
+                                className="mt-5 inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-600 px-5 text-sm font-black text-white transition hover:bg-red-700"
                             >
                                 <FaPlus />
                                 Create Donation Request
@@ -485,7 +485,7 @@ export default function MyDonationRequestsPage() {
                                                             onClick={() =>
                                                                 handleStatusUpdate(requestId, "done")
                                                             }
-                                                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition hover:bg-emerald-600 hover:text-white disabled:opacity-60"
+                                                            className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition hover:bg-emerald-600 hover:text-white disabled:opacity-60"
                                                             title="Mark as done"
                                                         >
                                                             <FaCheck />
@@ -494,7 +494,7 @@ export default function MyDonationRequestsPage() {
 
                                                     <Link
                                                         href={`/dashboard/edit-donation-request/${requestId}`}
-                                                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-800 hover:text-white"
+                                                        className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-800 hover:text-white"
                                                         title="Edit"
                                                     >
                                                         <FaPenToSquare />
@@ -505,7 +505,7 @@ export default function MyDonationRequestsPage() {
                                                             type="button"
                                                             disabled={isActionLoading}
                                                             onClick={() => handleCancelRequest(requestId)}
-                                                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-600 hover:text-white disabled:opacity-60"
+                                                            className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-600 hover:text-white disabled:opacity-60"
                                                             title="Cancel request"
                                                         >
                                                             <FaXmark />
@@ -516,7 +516,7 @@ export default function MyDonationRequestsPage() {
                                                         type="button"
                                                         disabled={isActionLoading}
                                                         onClick={() => handleDeleteRequest(requestId)}
-                                                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition hover:bg-rose-600 hover:text-white disabled:opacity-60"
+                                                        className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition hover:bg-rose-600 hover:text-white disabled:opacity-60"
                                                         title="Delete request"
                                                     >
                                                         <FaTrash />
@@ -524,7 +524,7 @@ export default function MyDonationRequestsPage() {
 
                                                     <Link
                                                         href={`/dashboard/donation-requests/${requestId}`}
-                                                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white"
+                                                        className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-red-600 hover:text-white"
                                                         title="View"
                                                     >
                                                         <FaEye />
@@ -617,7 +617,7 @@ export default function MyDonationRequestsPage() {
                                 type="button"
                                 onClick={handleConfirmAction}
                                 disabled={!!actionLoadingId}
-                                className={`inline-flex h-11 flex-1 items-center justify-center rounded-xl px-4 text-sm font-black text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                className={`inline-flex h-11 flex-1 cursor-pointer items-center justify-center rounded-xl px-4 text-sm font-black text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
                                     confirmModal.type === "delete"
                                         ? "bg-rose-600 hover:bg-rose-700"
                                         : "bg-red-600 hover:bg-red-700"
